@@ -7,23 +7,8 @@ function ECUSIM ({
 
 	this.modules = {
 		CCF: {
-			basedT: 0.02,
+			basedT: 0.1,
 			runningQuery: [{
-				i: 1,
-				f: PFltSig_PCdng_20ms,
-				dT: 0.02, //s
-				disable: false,
-			},{
-				i: 2,
-				f: PFltSig_RelsPCorrln_100ms,
-				dT: 0.1, //s
-				disable: false,
-			},{
-				i: 3,
-				f: PFltSig_Coorr_100ms,
-				dT: 0.1, //s
-				disable: false,
-			},{
 				i: 4,
 				f: PFltSig_PCorrln_100ms,
 				dT: 0.1, //s
@@ -31,6 +16,24 @@ function ECUSIM ({
 			}],
 			initialized: false,
 		}
+		/*
+		{
+			i: 1,
+			f: PFltSig_PCdng_20ms,
+			dT: 0.02, //s
+			disable: true,
+		},{
+			i: 2,
+			f: PFltSig_RelsPCorrln_100ms,
+			dT: 0.1, //s
+			disable: true,
+		},{
+			i: 3,
+			f: PFltSig_Coorr_100ms,
+			dT: 0.1, //s
+			disable: true,
+		},
+		*/
 	}
 
 	this.stepper = null;
@@ -43,7 +46,7 @@ function ECUSIM ({
 	this.runModule = function ({
 		ECUModule,
 		mdf = self.memory.MDF,
-		startup = 5, // unit: points
+		startup = 0, // unit: points
 		}) {
 		if(init() === 'mdf not ready') {
 			alert('MDF未解析完')
@@ -80,7 +83,7 @@ function ECUSIM ({
 				}
 				if (self.stepIndicator) self.stepIndicator.innerText = (step + 1);
 				if (self.progressIndicator) self.progressIndicator.style.width = parseInt((sectionIndex+1)/sectionCount*100) + '%';
-				console.log( parseInt((sectionIndex+1)/sectionCount*100) + '%')
+				
 			}, 1000 + sectionHandleTime*(sectionIndex+1))
 		}
 		setTimeout(f2, sectionHandleTime*sectionCount + 2000);
@@ -100,7 +103,7 @@ function ECUSIM ({
 			let n;
 			for (const func of ECUModule.runningQuery) {
 				func.fObj = func.fObj || new func.f();
-				n = importChannelDataToMemory(mdf, func.fObj);
+				n = importChannelDataToMemory(mdf, func, self.memory, ECUModule.basedT);
 				for (const name in func.fObj.import) {
 					self.memory.workplace[name] = 0;
 				}
@@ -126,10 +129,11 @@ function ECUSIM ({
 			}			
 		}
 
-		function importChannelDataToMemory (mdf, fObj, memoryNS = self.memory, simStepSize = 0.02) {
-			let tEnd, n = self.memory.time ? self.memory.time.length : 0;
+		function importChannelDataToMemory (mdf, func, memoryNS = self.memory, simStepSize = 0.02, needInterpolation) {
+			let tStart, tEnd, n = self.memory.time ? self.memory.time.length : 0, fObj = func.fObj;
 			const nameCollection = Object.keys(fObj.import).concat(Object.keys(fObj.variables));
 			for (const name of nameCollection) {
+				if(func.disable || (fObj.import[name] && fObj.import[name].disable)) continue;
 				let theCNBlock;
 				let result = mdf.searchChannelsByRegExp(new RegExp(name+'\\\\'));
 				if (result.length > 0) theCNBlock = result[0];
@@ -144,6 +148,8 @@ function ECUSIM ({
 					const timeCNBlock  = theCNBlock.parent.cnBlocks[0],
 						  rawTimeArray = timeCNBlock.rawDataArray;
 					if (rawTimeArray.length === 0) mdf.readDataBlockOf(timeCNBlock, mdf.arrayBuffer);
+					console.log(timeCNBlock);
+					tStart = tStart || rawTimeArray[0];
 					tEnd = tEnd || rawTimeArray[rawTimeArray.length -1];
 					n = n || parseInt(tEnd/simStepSize);
 
@@ -151,8 +157,8 @@ function ECUSIM ({
 					const normTimeArray = new Float64Array(n),
 						  normDataArray = new Float64Array(n);
 
-					for (let i = 0, t = 0; i < n; i++) {
-						t = i * simStepSize;
+					for (let i = 0, t = tStart; i < n; i++) {
+						t += simStepSize;
 						if (!memoryNS.timeNormalized) normTimeArray[i] = t;
 						normDataArray[i] = (binarySearchChannel(t, rawTimeArray, rawDataArray, theCNBlock.isDiscrete));
 					}
@@ -237,7 +243,9 @@ function ECUSIM ({
 
 		function readCurrentChannelDataInMemory (i, fObj, memoryNS, readVariable = false) {
 			for (const name in fObj.import) {
-				if (!fObj.import[name].disable) memoryNS.workplace[name] = memoryNS.measurements[name][i];
+				if (!fObj.import[name].disable) {
+					memoryNS.workplace[name] = memoryNS.measurements[name][i];
+				}
 			}
 
 			if (readVariable) {
@@ -271,6 +279,7 @@ function ECUSIM ({
 
 		for (const [i, name] of names.entries()) {
 			let simuData = self.memory.archives[name];
+			if (!simuData) continue;
 			if (typeof simuData[0] === 'boolean') simuData = simuData.map((d) => {return d?1:0});
 			const measData = Array.from(self.memory.measurements[name]);
 			

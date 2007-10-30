@@ -59,6 +59,7 @@ function PFltSig_RelsPCorrln_100ms () {
 	}
 
 	this.import = {
+		PFlt_stActv: {},
 		'B_kh': {},
 		'B_kh_msg': {},
 		'B_sa': {},
@@ -66,6 +67,7 @@ function PFltSig_RelsPCorrln_100ms () {
 		'PFlt_flgDewpPfil': {},
 		'PFltRgn_flgRgnRunng': {},
 		'PFlt_flgEngOn': {},
+		PFltSig_vfEgPfilCorrdFild: {},
 	}
 
 	this.labels = {
@@ -76,7 +78,7 @@ function PFltSig_RelsPCorrln_100ms () {
 	}
 
 	this.variables = {
-		PFltSig_vfEgPfilCorrdFild: {},
+		
 		PFltSig_vfEgPfilOldRels: {},
 		PFltSig_dvfEgPfilFild: {},
 		PFltSig_dvfEgPfilFildAbslt: {},

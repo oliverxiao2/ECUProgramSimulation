@@ -107,7 +107,10 @@ function PFltSig_Coorr_100ms () {
 		}
 	}
 	
-	this.import = {}
+	this.import = {
+		PFlt_stActv: {disable: true},
+		PFltSig_stRelsCondMon: {disable: true},
+	}
 
 	this.labels = {
 		PFltSig_tiEfcDurnMin_C: 	{initValue: 20, bindInputId: 'input_PFltSig_tiEfcDurnMin_C', inputType: 'number'},

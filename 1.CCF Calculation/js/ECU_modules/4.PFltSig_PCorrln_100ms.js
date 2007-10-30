@@ -44,8 +44,8 @@ function PFltSig_PCorrln_100ms () {
 		// step.10
 		// {PFltSig_facPCrssCorrln, PFltSig_facPSelfCorrln, PFltSig_ratPCorrlnBuf1, PFltSig_ratPCorrlnBuf2} => variables
 		if ($w.PFltSig_stStMac === 2) {
-    		$w.PFltSig_facPCrssCorrln = $w.PFltSig_pDeltaPfilDifFild * $w.PFltSig_pDeltaPfilDifRef + $w.PFltSig_facPCrssCorrln;
-    		$w.PFltSig_facPSelfCorrln = $w.PFltSig_pDeltaPfilDifRef * $w.PFltSig_pDeltaPfilDifRef  + $w.PFltSig_facPSelfCorrln;
+    		$w.PFltSig_facPCrssCorrln += $w.PFltSig_pDeltaPfilDifFild * $w.PFltSig_pDeltaPfilDifRef;
+    		$w.PFltSig_facPSelfCorrln += $w.PFltSig_pDeltaPfilDifRef * $w.PFltSig_pDeltaPfilDifRef;
     		$w.PFltSig_ratPCorrlnBuf1 = (0.0000001 > $w.PFltSig_facPSelfCorrln) ? $w.PFltSig_ratPCorrlnBuf2 : ($w.PFltSig_facPCrssCorrln / $w.PFltSig_facPSelfCorrln);
   		}
 
@@ -66,10 +66,11 @@ function PFltSig_PCorrln_100ms () {
 	}
 
 	this.import = {
-		'PFltSig_stStMac': {disable: true},
-		'PFltSig_pPfilDifFild': {disable: true},
-		'PFltSig_vfEgPfilCorrdFild': {disable: true},
-		'PFltSig_vfSqEgPfilCorrdFild': {disable: true},
+		PFlt_stActv: {},
+		'PFltSig_stStMac': {},
+		'PFltSig_pPfilDifFild': {},
+		'PFltSig_vfEgPfilCorrdFild': {},
+		'PFltSig_vfSqEgPfilCorrdFild': {},
 	}
 
 	this.labels = {
