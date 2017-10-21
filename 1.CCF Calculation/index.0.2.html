@@ -1,0 +1,12 @@
+<input type="file" id="importMDFFile">
+
+<p id='step-indicator'></p>
+<div id="progress-indicator" style="width:10px;height: 10px;background: red; "></div>
+
+<script type="text/javascript" src="scripts/ECUSIM.js"></script>
+<script type="text/javascript" src="lib/MDF.0.9.js"></script>
+<script type="text/javascript">
+	var myECU = new ECUSIM ({
+		inputFileHTMLElement: document.getElementById('importMDFFile'),
+	});
+</script>

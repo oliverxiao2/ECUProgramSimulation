@@ -552,7 +552,7 @@ function PFltSig_PCdng_20ms () {
 	*/
 	with(memory){
 	// ================ PFltSig_PCdng.Main.Hierachy Start ===================
-		// step.1
+		// step.1 {PFLT_VAR_SY} => import
 		if (PFLT_VAR_SY === 11) {
 			if (!(getBit(0, PFlt_stActv))) return;
 		} else {
@@ -560,106 +560,106 @@ function PFltSig_PCdng_20ms () {
 		}
 
 		// step.2
-		_tPFltFilDevB1 = ((PFlt_tFilDevB1 > -273.04) ? PFlt_tFilDevB1 : 273.04);
+		const _tPFltFilDevB1 = ((PFlt_tFilDevB1 > -273.04) ? PFlt_tFilDevB1 : 273.04);
 
-		// step.3
+		// step.3 {PFltSig_ratTEgPfil} => variables
   		PFltSig_ratTEgPfil = (_tPFltFilDevB1 + 273.14) / PFltSig_tEgPfilRef_C;
 
-  		// step.4
+  		// step.4 {PFltSig_ratRFlowEg} => variables
   		PFltSig_ratRFlowEg = interpolation_curve(PFltSig_ratTEgPfil, PFltSig_ratRFlowEg_T);
 
-  		// step.5
+  		// step.5 {ExhMod_pExhPfilDsB1, PFlt_pPFltDiffB1, PFlt_mfExhB1} => import
   		const _step5_temp1 = (ExhMod_pExhPfilDsB1 + (0.5 * PFlt_pPFltDiffB1)) * 100;
-  		_vfEgPfil = (_tPFltFilDevB1 + 273.14) * PFlt_mfExhB1 * 291.73684 / ((_step5_temp1 > 32540)?_step5_temp1:32540);
+  		const _vfEgPfil = (_tPFltFilDevB1 + 273.14) * PFlt_mfExhB1 * 291.73684 / ((_step5_temp1 > 32540)?_step5_temp1:32540);
 
   		// step.6
-  		_rhoEgPfil = _step5_temp1 / (291.73684 * (_tPFltFilDevB1 + 273.14));
+  		const _rhoEgPfil = _step5_temp1 / (291.73684 * (_tPFltFilDevB1 + 273.14));
 
-  		// step.7
+  		// step.7 {PFltSig_vfEgPfilCorrd} => variables
   		PFltSig_vfEgPfilCorrd = PFltSig_ratRFlowEg * _vfEgPfil;
 
-  		// step.8
+  		// step.8 {PFltSig_vfSqEgPfilCorrd} => variables
   		PFltSig_vfSqEgPfilCorrd = _vfEgPfil * _rhoEgPfil * _vfEgPfil;
 	// ================ PFltSig_PCdng.Main.Hierachy End   ===================
 
 	// ================ PFltSig_PCdng.Main.Volumetric_Flow_Filtering_1 Start ================
-		// step.9
+		// step.9 {PFltSig_vfEgPfilFildBuf3} => variables
 		PFltSig_vfEgPfilFildBuf3 = PFltSig_vfEgPfilFildBuf2;
 
-		// step.10
+		// step.10 {PFltSig_vfEgPfilFildBuf2} => variables
 		PFltSig_vfEgPfilFildBuf2 = PFltSig_vfEgPfilFildBuf1;
 
-		// step.11
+		// step.11 {PFltSig_vfEgPfilFildBuf1} => variables
 		PFltSig_vfEgPfilFildBuf1 = PFltSig_vfEgPfilFildBuf;
 
 		// step.12
-		_muldiv	= (2*Math.PI/Math.max(PFltSig_tiFilVf_C, 0.0001)) * (ESC_tiSampling / 1000000); // dT单位是um
+		var _muldiv = (2*Math.PI/Math.max(PFltSig_tiFilVf_C, 0.0001)) * (ESC_tiSampling / 1000000); // dT单位是um
 
 		// step.13
-		_max  = Math.max(_muldiv, 0.0000000000001);
+		var _max  = Math.max(_muldiv, 0.0000000000001);
 
 		// step.14
-		_mul2 = _max * _max;
+		var _mul2 = _max * _max;
 
 		// step.15
-		_mul3 = _mul2 * _max;
+		var _mul3 = _mul2 * _max;
 
 		// step.16
-		_fac2divx = 2 / _max;
+		var _fac2divx = 2 / _max;
 
 		// step.17
-		_fac2divx2 = 2 / _mul2;
+		var _fac2divx2 = 2 / _mul2;
 
 		// step.18
-		_facFilVf2 = -1 / _mul3;
+		var _facFilVf2 = -1 / _mul3;
 
 		// step.19
-		_facFilVf1 = (1 + _fac2divx + _fac2divx2) - _facFilVf2;
+		var _facFilVf1 = (1 + _fac2divx + _fac2divx2) - _facFilVf2;
 
 		// step.20
-		_fac3divx3 = 3 / _mul3;
+		var _fac3divx3 = 3 / _mul3;
 
 		// step.21
-		_facFilVf3 = _fac2divx2 + _fac3divx3;
+		var _facFilVf3 = _fac2divx2 + _fac3divx3;
 
 		// step.22
-		_facFilVf4 = -4 / _mul2 - _fac2divx - _fac3divx3;
+		var _facFilVf4 = -4 / _mul2 - _fac2divx - _fac3divx3;
 
-		// step.23
+		// step.23 {PFltSig_vfEgPfilFildBuf} => variables
 		PFltSig_vfEgPfilFildBuf = (PFltSig_vfEgPfilCorrd - _facFilVf4 * PFltSig_vfEgPfilFildBuf1 - _facFilVf3 * PFltSig_vfEgPfilFildBuf2 - _facFilVf2 * PFltSig_vfEgPfilFildBuf3) / _facFilVf1;
 
-		// step.24
+		// step.24 {PFltSig_vfEgPfilCorrdFild} => variables
 		PFltSig_vfEgPfilCorrdFild = PFltSig_vfEgPfilFildBuf;
 	// ================ PFltSig_PCdng.Main.Volumetric_Flow_Filtering_1 End   ================
 
 	// ================ PFltSig_PCdng.Main.Volumetric_Flow_Filtering_2 Start ================
-		// step.25
+		// step.25 {PFltSig_vfSqEgPfilCorrdBuf3} => variables
 		PFltSig_vfSqEgPfilCorrdBuf3 = PFltSig_vfSqEgPfilCorrdBuf2;
 
-		// step.26
+		// step.26 {PFltSig_vfSqEgPfilCorrdBuf2} => variables
 		PFltSig_vfSqEgPfilCorrdBuf2 = PFltSig_vfSqEgPfilCorrdBuf1;
 
-		// step.27
+		// step.27 {PFltSig_vfSqEgPfilCorrdBuf1} => variables
 		PFltSig_vfSqEgPfilCorrdBuf1 = PFltSig_vfSqEgPfilCorrdBuf;
 
-		// step.28
+		// step.28 {PFltSig_vfSqEgPfilCorrdBuf} => variables
 		PFltSig_vfSqEgPfilCorrdBuf = (PFltSig_vfSqEgPfilCorrd - (_facFilVf4 * PFltSig_vfSqEgPfilCorrdBuf1) - (_facFilVf3 * PFltSig_vfSqEgPfilCorrdBuf2) - (_facFilVf2 * PFltSig_vfSqEgPfilCorrdBuf3)) / _facFilVf1;
 
-		// step.29
+		// step.29 {PFltSig_vfSqEgPfilCorrdFild} => variables
 		PFltSig_vfSqEgPfilCorrdFild = PFltSig_vfSqEgPfilCorrdBuf;
 	// ================ PFltSig_PCdng.Main.Volumetric_Flow_Filtering_2 End   ================
 
 	// ================ PFltSig_PCdng.Main.Volumetric_Flow_Filtering_3 Start ================
-		// step.30
+		// step.30 {PFltSig_pPfilDifFildBuf3} => variables
 		PFltSig_pPfilDifFildBuf3 = PFltSig_pPfilDifFildBuf2;
 
-		// step.31
+		// step.31 {PFltSig_pPfilDifFildBuf2} => variables
 		PFltSig_pPfilDifFildBuf2 = PFltSig_pPfilDifFildBuf1;
 
-		// step.32
+		// step.32 {PFltSig_pPfilDifFildBuf1} => variables
 		PFltSig_pPfilDifFildBuf1 = PFltSig_pPfilDifFildBuf;
 
-		// step.33
+		// step.33 {PFltSig_tiFilPDif_C} => labels
 		_muldiv	= (2*Math.PI/Math.max(PFltSig_tiFilPDif_C, 0.0001)) * (ESC_tiSampling / 1000000); // dT单位是um
 
 		// step.34
@@ -692,13 +692,13 @@ function PFltSig_PCdng_20ms () {
 		// step.43
 		_facFilPDif4 = -4 / _mul2 - _fac2divx - _fac3divx3;
 
-		// step.44
+		// step.44 {PFltSig_pPfilDifFildBuf} => variables
 		PFltSig_pPfilDifFildBuf = (PFlt_pPFltDiffB1 - _facFilPDif4 * PFltSig_pPfilDifFildBuf1 - _facFilPDif3 * PFltSig_pPfilDifFildBuf2 - _facFilPDif2 * PFltSig_pPfilDifFildBuf3) / _facFilPDif1;
 
-		// step.45
+		// step.45 {PFltSig_pPfilDifFild} => variables
 		PFltSig_pPfilDifFild = PFltSig_pPfilDifFildBuf;
 
-		// step.46
+		// step.46 {PFltSig_vfEgPfil} => variables
 		PFltSig_vfEgPfil = _vfEgPfil;
 	// ================ PFltSig_PCdng.Main.Volumetric_Flow_Filtering_3 End   ================
 	}
@@ -794,7 +794,6 @@ function PFltSig_Coorr_100ms () {
 	PFltSig_tiEfcDurn = PFltSig_PCorrln2SWE_I;
 	}
 
-	
 };
 
 function PFltSig_PCorrln_100ms () {
@@ -996,7 +995,7 @@ function turnOnDelay (sourceOld, source, timer, T, dT) {
 		out = source ? 0 : 1; //取反
 	} else out = source;
 
-	return out;
+	return out
 };
 
 function stopECUSim () {
