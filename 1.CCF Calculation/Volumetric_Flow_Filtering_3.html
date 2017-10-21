@@ -1,0 +1,1323 @@
+<head>
+<style>
+	.curve {
+		overflow: scroll;
+	}
+
+	.curve input {
+		width:80px;
+	}
+	.figure {
+		width: 100%;
+		height: 320px;
+	}
+</style>
+</head>
+<body style="display:flex">
+<div id="div01" style="width: 400px;flex-direction: column;display: flex;border: 1px solid;font-family: 'Segoe UI'; font-size: 13px;">
+
+	<div>
+		<label for="input01">选择测量文件</label>
+		<input type="file" id="input01" onchange="readMDF()" style="width:auto;"/>
+	</div>
+	<div>
+		<label for="sim_step_size">仿真步长(s)</label>
+		<input type="number" id="sim_step_size" value="0.02">
+	</div>
+	<div>
+		<label for="PFltSig_tEgPfilRef_C">PFltSig_tEgPfilRef_C</label>
+		<input type="number" id="PFltSig_tEgPfilRef_C" value="293">
+	</div>
+	<div class="curve">
+		<span>PFltSig_ratRFlowEg_T Curve标定</span>
+		<table id="PFltSig_ratRFlowEg_T_table">
+			<tr name='x'>
+				<td>x</td>
+				<td><input type="number" value="0.76100"></td>
+				<td><input type="number" value="1.22400"></td>
+				<td><input type="number" value="1.68700"></td>
+				<td><input type="number" value="2.15000"></td>
+				<td><input type="number" value="2.61300"></td>
+				<td><input type="number" value="3.07600"></td>
+				<td><input type="number" value="3.53900"></td>
+				<td><input type="number" value="4.00200"></td>
+				<td><input type="number" value="4.46500"></td>
+				<td><input type="number" value="4.92800"></td>
+				<td><input type="number" value="5.39100"></td>
+			</tr>
+			<tr name='value'>
+				<td>z</td>
+				<td><input type="number" value="0.81700"></td>
+				<td><input type="number" value="1.16200"></td>
+				<td><input type="number" value="2.02000"></td>
+				<td><input type="number" value="2.07000"></td>
+				<td><input type="number" value="2.07200"></td>
+				<td><input type="number" value="2.14900"></td>
+				<td><input type="number" value="2.30900"></td>
+				<td><input type="number" value="2.79000"></td>
+				<td><input type="number" value="3.02600"></td>
+				<td><input type="number" value="3.25500"></td>
+				<td><input type="number" value="3.47900"></td>
+			</tr>			
+		</table>
+	</div>
+	<div>
+		<label for="PFltSig_tiFilVf_C">流量滤波时间常数(s)</label>
+		<input type="number" value="5" style="width:48px" id="PFltSig_tiFilVf_C">
+	</div>
+	<div>
+		<label for="PFltSig_tiFilPDif_C">压差滤波时间常数(s)</label>
+		<input type="number" value="5" style="width:48px" id="PFltSig_tiFilPDif_C">
+	</div>
+	
+	<div>
+		<label for="PFltSig_rFlowPfilRef_C">A_0</label>
+		<input type="number" value="0.0479" style="width:240px" id="PFltSig_rFlowPfilRef_C">
+	</div>
+	<div>
+		<label for="PFltSig_facPDeltaPfilRefCorr_C">B</label>
+		<input type="number" value="-0.00002224160016339738" style="width:240px" id="PFltSig_facPDeltaPfilRefCorr_C">
+	</div>
+	<div>
+		<label for="start">起始记录(-)</label>
+		<input type="number" value="0" style="width:96px;" id="start">
+	</div>
+	<div>
+		<label for="duration">窗口宽度(-)</label>
+		<input type="number" value="10000" style="width:96px;" id="duration">
+	</div>
+	<div style="flex:1">
+		<input type="button" value="init" onclick="ECUInit()">
+		<input type="button" value="run" onclick="ECUSim()">
+		<input type="button" value="stop" onclick="stopECUSim()">
+		<input type="button" value="draw" onclick="updatePlot()">
+		<input type="button" value="read" onclick="readTopValues()">
+	</div>
+	<div>
+		<p id="text"></p>
+	</div>	
+</div>
+
+<div style="flex:1;overflow-y:auto;">
+	<div>
+		<div id="figure00" class="figure"></div>
+		<div id="figure-d" class="figure"></div>
+		<div id="figure-n" class="figure"></div>
+		<div id="figure-DeltaPRef" class="figure"></div>
+		<div id="figure-Delta-P" class="figure"></div>
+		<div id="figure-Delta-V" class="figure"></div>
+		<div id="figure-Delta-V2" class="figure"></div>
+		<div id="figure01" class="figure"></div>
+		<div id="figure02" class="figure"></div>
+		<div id="figure03" class="figure"></div>
+		<div id="figure04" class="figure"></div>
+		<div id="figure05" class="figure"></div>
+		<div id="figure06" class="figure"></div>
+		<div id="figure07" class="figure"></div>
+		<div id="figure08" class="figure"></div>
+		<div id="figure09" class="figure"></div>
+		<div id="figure10" class="figure"></div>
+		<div id="figure11" class="figure"></div>
+	</div>
+</div>
+</body>
+<script type="text/javascript" src="lib/d3.v4.min.js"></script>
+<script type="text/javascript" src="lib/MDF.0.9.js"></script>
+<script type="text/javascript" src="lib/esprima.js"></script>
+<script type="text/javascript" src="lib/plotly.v1.31.0.min.js"></script>
+<script type="text/javascript">
+var mdf;
+var tStart = 0, tEnd = 0;
+var intervalRunner;
+var counter = 0;
+var frames = {
+	PFltSig_pPfilDifFild: [],
+	PFlt_pPFltDiffB1:[],
+
+	PFltSig_vfEgPfilCorrdFild: [],
+	PFltSig_vfEgPfilCorrd: [],
+
+	PFltSig_ratPCorrln: [],
+};
+var memory = {
+	timeNormalized: false,
+	time: [],
+	measurements: {}, 	// 测量量输入
+	archives: {},		// 信号存档,可用于待观察的信号
+
+	PFLT_VAR_SY: 0,
+	PFlt_stActv: 3,
+	ESC_tiSampling: 0,
+
+	PFltSig_vfEgPfilCorrd: 0,
+	PFltSig_vfSqEgPfilCorrd: 0,
+	PFltSig_vfEgPfilFildBuf3: 0,
+	PFltSig_vfEgPfilFildBuf2: 0,
+	PFltSig_vfEgPfilFildBuf1: 0,
+	PFltSig_vfEgPfilFildBuf: 0,
+
+	_tPFltFilDevB1: 0,
+	_vfEgPfil: 0,
+	_rhoEgPfil: 0,
+	_step5_temp1: 0,
+	PFlt_tFilDevB1: 0,
+	PFltSig_ratTEgPfil: 0,
+	PFltSig_tEgPfilRef_C: 0,
+	PFltSig_ratRFlowEg: 0,
+	PFltSig_ratRFlowEg_T: 0,
+	PFltSig_vfEgPfil: 0,
+	PFltSig_ratPCorrln: 0,
+	PFltSig_ratPCorrlnBuf2: 0,
+	PFltSig_tiFilVf_C: 0,
+	ExhMod_pExhPfilDsB1: 0,
+	PFlt_pPFltDiffB1: 0,	
+	PFlt_mfExhB1: 0,
+	_muldiv: 0, 
+	_max: 0,
+	_mul2: 0,
+	_mul3: 0,
+	_fac2divx: 0,
+	_fac2divx2: 0,
+	_facFilVf2: 0,
+	_facFilVf1: 0,
+	_fac3divx3: 0,
+	_facFilVf3: 0,
+	_facFilVf4: 0,
+
+	PFltSig_vfEgPfilCorrdFild: 0,
+	PFltSig_vfSqEgPfilCorrdBuf3: 0,
+	PFltSig_vfSqEgPfilCorrdBuf2: 0,
+	PFltSig_vfSqEgPfilCorrdBuf1: 0,
+	PFltSig_vfSqEgPfilCorrdBuf: 0,
+	PFltSig_vfSqEgPfilCorrdFild: 0,
+	PFltSig_pPfilDifFildBuf3: 0,
+	PFltSig_pPfilDifFildBuf2: 0,
+	PFltSig_pPfilDifFildBuf1: 0,
+	PFltSig_pPfilDifFildBuf: 0,
+	PFltSig_tiFilPDif_C: 0,
+	_facFilPDif2: 0,
+	_facFilPDif1: 0,
+	_facFilPDif3: 0,
+	_facFilPDif4: 0,
+	PFltSig_pPfilDifFild: 0,
+
+	// PFltSig_RelsPCorrln_100ms
+	PFltSig_dvfEgPfilFildMin_C: 35,
+	PFltSig_dvfEgPfilFildMax_C: 300,
+	timer_PFltSig_tiNormMin_C: 0,
+	PFlt_flgEngOn: 0,
+	PFlt_flgEngOnOld: 0,
+	PFltSig_tiNormMin_C: 20,
+	
+	PFltSig_stRelsCondMon: 0,
+	PFltSig_dvfEgPfilFild: 0,
+	PFltSig_dvfEgPfilFildAbslt: 0,
+	PFltSig_vfEgPfilOldRels: 0,
+	MDG1MSGCNCPT_SC: 0,
+	_t2_bit6: 0,
+	_t2_bit3: 0,
+	B_kh_msg: 0,
+	B_kh: 0,
+	B_sa_msg: 0,
+	B_sa: 0,	
+	PFlt_flgDewpPfil: 0,
+	PFltRgn_flgRgnRunng: 0,
+
+	// PFltSig_Coorr_100ms
+	PFltSig_stEvln: 0,
+	PFltSig_StMacPBasd: {
+		Eval: false,
+		Reset: true,
+		Hold: false,
+		Compu: false,
+		State: '',
+		sm: 'Init',
+	},
+	PFltSig_tiEfcDurn: 0,
+	PFltSig_PCorrln2SWE_I: 0,
+	PFltSig_stRstCrssCorrln: 0,
+	PFltSig_stHaltCrssCorrln: 0,
+	PFltSig_tiEfcDurnMin_C: 20,
+	_stRstCrssCorrln: 0,
+	PFltSig_stRstCrssCorrln_C: 113,
+	PFltSig_stRstCrssCorrlnMan_C: 0,
+	PFltSig_stHaltCrssCorrln_C: 13,
+	PFltSig_stStMac: '',
+	
+	PFltSig_pPfilDifFildOld: 0,
+	PFltSig_pDeltaPfilDifFild: 0,	 		// <-- deltaP_Diff_mess
+	PFltSig_vfEgPfilCorrdBufOld: 0,
+	PFltSig_vfDeltaEgPfilCorrdFild: 0,		// <-- deltaVf_Abg_GPF
+	PFltSig_vfSqEgPfilCorrdOld: 0,
+	PFltSig_vfSqDeltaEgPfilCorrdFild: 0,	// <-- deltaVfSq_Agb_GPF
+	PFltSig_facPCrssCorrln: 0,
+	PFltSig_facPSelfCorrln: 0,
+	PFltSig_ratPCorrlnBuf1: 0,
+	PFltSig_ratPCorrlnBuf2: 0,
+	PFltSig_pDeltaPfilDifRef: 0,
+};
+var measurements = [
+	'PFlt_stActv',					// <-- 激活状态，一般恒为3,全部四个模块均用到
+	'PFltSig_vfEgPfilCorrdFild', 	// <-- 滤波后的体积流量
+	'PFltSig_stRelsCondMon',		// <-- 16 bit code 条件位
+	'PFltSig_stRstCrssCorrln',
+	'PFltSig_stHaltCrssCorrln',
+	'PFltSig_stEvln',
+	'PFltSig_stStMac',				// <-- 状态机输出状态字符串: 'evaluate'|'restart'|'compute',注意首字母小写
+	'PFltSig_tiEfcDurn',			// <-- 触发Evalute累计时间
+	
+	'PFltSig_vfEgPfil',				// <-- 经过排气质量流量计算出的体积流量
+	
+	'B_kh',							// <-- bit 1
+	'B_kh_msg',	
+	'B_sa',							// <-- bit 2
+	'B_sa_msg',
+	'PFlt_flgDewpPfil',				// <-- bit 4
+	'PFltRgn_flgRgnRunng',			// <-- bit 5
+	'PFlt_flgEngOn',				// <-- bit 6
+
+	'PFltSig_dvfEgPfilFild',		// <-- 体积流量变化梯度
+	'PFltSig_dvfEgPfilFildAbslt',	// <-- 体积流量变化梯度的绝对值
+
+	'PFlt_tFilDevB1',
+	'PFltSig_pPfilDifFild',
+	'PFlt_mfExhB1', 
+	'ExhMod_pExhPfilDsB1', 
+	'PFlt_pPFltDiffB1',
+
+	'PFltSig_pDeltaPfilDifFild',	 	// <-- deltaP_Diff_mess
+	'PFltSig_vfDeltaEgPfilCorrdFild',	// <-- deltaVf_Abg_GPF
+	'PFltSig_vfSqDeltaEgPfilCorrdFild',	// <-- deltaVfSq_Agb_GPF
+	'PFltSig_ratPCorrln',
+	'PFltSig_pDeltaPfilDifRef',
+	'PFltSig_facPCrssCorrln',
+	'PFltSig_facPSelfCorrln',
+];
+
+
+function readMDF () {
+	var file = document.getElementById('input01').files[0];
+	var reader = new FileReader();
+	reader.onload = function (e) {
+		var arrayBuffer = e.target.result;
+		mdf = new MDF(arrayBuffer);
+	};
+	reader.readAsArrayBuffer(file);
+};
+
+function readTopValues () {
+	var buf  = [/PFltSig_pPfilDifFildBuf\\/,
+	 			/PFltSig_pPfilDifFildBuf1\\/,
+	 			/PFltSig_pPfilDifFildBuf2\\/,
+	 			/PFltSig_pPfilDifFildBuf3\\/,
+				 /PFltSig_pPfilDifFild\\/];
+	var p = document.getElementById('text');
+	p.innerHTML = '';
+
+	var str = '', n =20;
+	for (const name of buf) {
+		let cn = mdf.searchChannelsByRegExp(name);
+		if (cn.length > 0) {
+			cn = cn[0];
+
+			const data = cn.ccBlock.convertAll(cn.rawDataArray);
+			if (data.length > 0) {
+				str += name + '<br>';
+				for (var item of data.slice(0, n)) {
+					str += item.toFixed(7) + '<br>';
+				}
+				str += '<br>';
+			}
+		}
+	}
+	p.innerHTML = str;
+};
+
+function compare (a, b) {
+	let report = '';
+
+	for (const [i, d] of a.entries()) {
+		if (b[i] != d) report += 'row:' + i + ', ' + d + ', ' + b[i] + '\n'; 
+	}
+
+	return report;
+};
+
+function initSVG (svgId) {
+	const svg = d3.select(svgId);
+}
+
+function draw(array, color="steelblue", yMax, yMin) {
+
+	var svg = d3.select('svg'),
+		margin = {top: 20, right: 20, bottom: 30, left: 50},
+		width = +svg.attr("width") - margin.left - margin.right,
+    	height = +svg.attr("height") - margin.top - margin.bottom,
+    	g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    var data = array.map((d, i) => {return {x: i, y:d}});
+
+    if (yMax === undefined) yMax = max(array);
+    if (yMin === undefined) yMin = min(array);
+
+    var x = d3.scaleLinear().domain([1, array.length]).range([0, width]);
+    var y = d3.scaleLinear().domain([yMin, yMax]).range([height, 0]); //
+	var line = d3.line().x(function (d) {return x(d.x)}).y(function (d) {return y(d.y)});
+
+	g.append("path")
+      .datum(data)
+      .attr("fill", "none")
+      .attr("stroke", color)
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
+      .attr("stroke-width", 1.0)
+      .attr("d", line);   
+};
+
+function max (array) {
+	let out;
+	for (const el of array) {
+		if (out === undefined || el > out) out = el;
+	}
+	return out;
+};
+
+function min (array) {
+	let out;
+	for (const el of array) {
+		if (out === undefined || el < out) out = el;
+	}
+	return out;
+};
+
+function arrayHandler (array, k = 1) {
+	const n = array.length;
+
+	const out = [];
+
+	for (let i = 0; i < n; i+=k) {
+		out.push(array[i]);
+	}
+
+	return out;
+};
+
+function getBit (i, number) {
+	const str = number.toString(2);
+	const len = str.length;
+	if (i <= (len - 1)) return parseInt(str[len - 1 - i]);
+};
+
+function putBit (i, value, target, bitLength = 16) {
+	if (typeof target === 'number') {
+		let str = (target + (1 << bitLength)).toString(2).substr(1);
+		const len = str.length;
+		const chars = str.split('');
+		if (i < len && i >= 0) {
+			chars[len - 1 - i] = (value ? 1 : 0);
+			target = parseInt(chars.join(''), 2);
+		}
+	}
+
+	return target;
+};
+
+function bitComp (A, B) {
+	return ((A & B) === B);
+}
+
+function getBitString (num, bitLength) {
+	return (num + (1 << (bitLength+1) )).toString(2).substr(1);
+}
+
+function interpolation_curve (k, curve) {
+	let {x, value} = curve;
+
+	if (typeof x[0] === 'string') {
+		x = x.map((d) => parseFloat(d));
+		value = value.map((d) => parseFloat(d));
+	}
+	
+
+	let n, diff, minDiff;
+
+	for (let i = 0; i < x.length; i++) {
+		if (k === x[i]) return value[i];
+
+		if ( (k - x[i]) * (k - x[i+1]) < 0) return interpolate(k, x[i], x[i+1], value[i], value[i+1]);
+
+		if (!((diff = Math.abs(k - x[i])) > minDiff)) {n = i; minDiff = diff;}
+	}
+
+	return value[n];
+};
+
+function interpolate(xi, x0, x1, y0, y1){return y0 + (xi - x0)*(y0 - y1)/(x0 - x1);};
+
+function getCurveFromTable (tableHTMLElement) {
+	const output = {
+		x: [],
+		value: []
+	};
+
+	const x_inputs = tableHTMLElement.querySelectorAll('[name=x] input');
+	const v_inputs = tableHTMLElement.querySelectorAll('[name=value] input');
+
+	for (let i=0; i<x_inputs.length; i++) {output.x.push(x_inputs[i].valueAsNumber)}
+	for (let i=0; i<v_inputs.length; i++) {output.value.push(v_inputs[i].valueAsNumber)}
+
+	return output;
+};
+
+function ECUInit () {
+	importChannelDataToMemory(mdf, measurements, memory.measurements);
+	clearMemoryArchives();
+
+	memory.PFltSig_PCorrln2SWE_I = 0;
+}
+
+function ECUSim (steps) {
+	console.time('sim');
+	const importChannels = [
+		// 1.PFltSig_PCdng
+		'PFlt_stActv',
+		'PFlt_tFilDevB1',
+		'PFlt_mfExhB1',
+		'ExhMod_pExhPfilDsB1',
+		'PFlt_pPFltDiffB1',
+		// 2.PFltSig_RelsPCorrln
+		'B_kh',
+		'B_kh_msg',
+		'B_sa',
+		'B_sa_msg',
+		'PFlt_flgDewpPfil',
+		'PFltRgn_flgRgnRunng',
+		'PFlt_flgEngOn',
+		// 3.PFltSig_Corrn
+		// 4.PFltSig_PCorrln 
+		];
+	memory.PFltSig_tiFilVf_C = document.getElementById('PFltSig_tiFilVf_C').valueAsNumber;
+	memory.PFltSig_ratRFlowEg_T = getCurveFromTable(document.getElementById('PFltSig_ratRFlowEg_T_table')),
+	memory.PFltSig_tEgPfilRef_C = document.getElementById('PFltSig_tEgPfilRef_C').valueAsNumber; // <-- 293 (K)
+	memory.PFltSig_tiFilPDif_C = document.getElementById('PFltSig_tiFilPDif_C').valueAsNumber;  // <-- 5 (s)
+	memory.PFltSig_rFlowPfilRef_C = document.getElementById('PFltSig_rFlowPfilRef_C').valueAsNumber;
+	memory.PFltSig_facPDeltaPfilRefCorr_C = document.getElementById('PFltSig_facPDeltaPfilRefCorr_C').valueAsNumber;
+	 
+	//PFltSig_dvfEgPfilFildMin_C: 35,
+	//PFltSig_dvfEgPfilFildMax_C: 300,
+	const step_size = document.getElementById('sim_step_size').valueAsNumber;
+	let duration = 0;
+	let stepMax  = steps || parseInt(tEnd/step_size);
+	for (let i = 0; i < stepMax; i++){
+		duration +=  step_size* i;
+		readCurrentChannelDataInMemory(i, importChannels, memory.measurements);
+		if (i % 1 === 0) {
+			memory.ESC_tiSampling = 20000;
+			PFltSig_PCdng_20ms();		
+		}
+		if (i % 5 === 0) {
+			memory.ESC_tiSampling = 100000;
+			PFltSig_RelsPCorrln_100ms();
+			PFltSig_Coorr_100ms();			
+			PFltSig_PCorrln_100ms();
+		}
+		archiveChannels(measurements);
+		/*
+		archiveChannels ([
+			'PFltSig_dvfEgPfilFild',		// 体积流量变化率
+			'PFltSig_dvfEgPfilFildAbslt',	// 体积流量变化率绝对值
+			'PFltSig_vfEgPfilCorrdFild', 	// 滤波后的流量,计算PFltSig_stRelsCondMon信号需要
+			'PFltSig_pPfilDifFild',			// 滤波后的压差
+			'PFltSig_vfEgPfil',				// 体积流量
+			'PFltSig_stRelsCondMon',		// 16 bit状态位
+			'PFltSig_stStMac',				// 状态机的状态字符串
+			'PFltSig_tiEfcDurn',			// 触发Evaluate累计时间
+			'PFltSig_ratPCorrln',			// CCF
+		]);
+		*/
+	}
+
+	console.log('running over...')
+	console.timeEnd('sim');
+	updatePlot();
+};
+
+function PFltSig_PCdng_20ms () {
+	/*
+	  ╔═════════════════════════════════════════════════════════════════════════╗
+	  	                                                                        
+	  	       PFltSig_PCdng.Main                                               
+	          20ms                                                             
+	                                                                           
+	  ╚═════════════════════════════════════════════════════════════════════════╝
+	*/
+	with(memory){
+	// ================ PFltSig_PCdng.Main.Hierachy Start ===================
+		// step.1
+		if (PFLT_VAR_SY === 11) {
+			if (!(getBit(0, PFlt_stActv))) return;
+		} else {
+			if (!((getBit(0, PFlt_stActv)) && (getBit(1, PFlt_stActv)))) return;
+		}
+
+		// step.2
+		_tPFltFilDevB1 = ((PFlt_tFilDevB1 > -273.04) ? PFlt_tFilDevB1 : 273.04);
+
+		// step.3
+  		PFltSig_ratTEgPfil = (_tPFltFilDevB1 + 273.14) / PFltSig_tEgPfilRef_C;
+
+  		// step.4
+  		PFltSig_ratRFlowEg = interpolation_curve(PFltSig_ratTEgPfil, PFltSig_ratRFlowEg_T);
+
+  		// step.5
+  		const _step5_temp1 = (ExhMod_pExhPfilDsB1 + (0.5 * PFlt_pPFltDiffB1)) * 100;
+  		_vfEgPfil = (_tPFltFilDevB1 + 273.14) * PFlt_mfExhB1 * 291.73684 / ((_step5_temp1 > 32540)?_step5_temp1:32540);
+
+  		// step.6
+  		_rhoEgPfil = _step5_temp1 / (291.73684 * (_tPFltFilDevB1 + 273.14));
+
+  		// step.7
+  		PFltSig_vfEgPfilCorrd = PFltSig_ratRFlowEg * _vfEgPfil;
+
+  		// step.8
+  		PFltSig_vfSqEgPfilCorrd = _vfEgPfil * _rhoEgPfil * _vfEgPfil;
+	// ================ PFltSig_PCdng.Main.Hierachy End   ===================
+
+	// ================ PFltSig_PCdng.Main.Volumetric_Flow_Filtering_1 Start ================
+		// step.9
+		PFltSig_vfEgPfilFildBuf3 = PFltSig_vfEgPfilFildBuf2;
+
+		// step.10
+		PFltSig_vfEgPfilFildBuf2 = PFltSig_vfEgPfilFildBuf1;
+
+		// step.11
+		PFltSig_vfEgPfilFildBuf1 = PFltSig_vfEgPfilFildBuf;
+
+		// step.12
+		_muldiv	= (2*Math.PI/Math.max(PFltSig_tiFilVf_C, 0.0001)) * (ESC_tiSampling / 1000000); // dT单位是um
+
+		// step.13
+		_max  = Math.max(_muldiv, 0.0000000000001);
+
+		// step.14
+		_mul2 = _max * _max;
+
+		// step.15
+		_mul3 = _mul2 * _max;
+
+		// step.16
+		_fac2divx = 2 / _max;
+
+		// step.17
+		_fac2divx2 = 2 / _mul2;
+
+		// step.18
+		_facFilVf2 = -1 / _mul3;
+
+		// step.19
+		_facFilVf1 = (1 + _fac2divx + _fac2divx2) - _facFilVf2;
+
+		// step.20
+		_fac3divx3 = 3 / _mul3;
+
+		// step.21
+		_facFilVf3 = _fac2divx2 + _fac3divx3;
+
+		// step.22
+		_facFilVf4 = -4 / _mul2 - _fac2divx - _fac3divx3;
+
+		// step.23
+		PFltSig_vfEgPfilFildBuf = (PFltSig_vfEgPfilCorrd - _facFilVf4 * PFltSig_vfEgPfilFildBuf1 - _facFilVf3 * PFltSig_vfEgPfilFildBuf2 - _facFilVf2 * PFltSig_vfEgPfilFildBuf3) / _facFilVf1;
+
+		// step.24
+		PFltSig_vfEgPfilCorrdFild = PFltSig_vfEgPfilFildBuf;
+	// ================ PFltSig_PCdng.Main.Volumetric_Flow_Filtering_1 End   ================
+
+	// ================ PFltSig_PCdng.Main.Volumetric_Flow_Filtering_2 Start ================
+		// step.25
+		PFltSig_vfSqEgPfilCorrdBuf3 = PFltSig_vfSqEgPfilCorrdBuf2;
+
+		// step.26
+		PFltSig_vfSqEgPfilCorrdBuf2 = PFltSig_vfSqEgPfilCorrdBuf1;
+
+		// step.27
+		PFltSig_vfSqEgPfilCorrdBuf1 = PFltSig_vfSqEgPfilCorrdBuf;
+
+		// step.28
+		PFltSig_vfSqEgPfilCorrdBuf = (PFltSig_vfSqEgPfilCorrd - (_facFilVf4 * PFltSig_vfSqEgPfilCorrdBuf1) - (_facFilVf3 * PFltSig_vfSqEgPfilCorrdBuf2) - (_facFilVf2 * PFltSig_vfSqEgPfilCorrdBuf3)) / _facFilVf1;
+
+		// step.29
+		PFltSig_vfSqEgPfilCorrdFild = PFltSig_vfSqEgPfilCorrdBuf;
+	// ================ PFltSig_PCdng.Main.Volumetric_Flow_Filtering_2 End   ================
+
+	// ================ PFltSig_PCdng.Main.Volumetric_Flow_Filtering_3 Start ================
+		// step.30
+		PFltSig_pPfilDifFildBuf3 = PFltSig_pPfilDifFildBuf2;
+
+		// step.31
+		PFltSig_pPfilDifFildBuf2 = PFltSig_pPfilDifFildBuf1;
+
+		// step.32
+		PFltSig_pPfilDifFildBuf1 = PFltSig_pPfilDifFildBuf;
+
+		// step.33
+		_muldiv	= (2*Math.PI/Math.max(PFltSig_tiFilPDif_C, 0.0001)) * (ESC_tiSampling / 1000000); // dT单位是um
+
+		// step.34
+		_max  = Math.max(_muldiv, 0.0000000000001);
+
+		// step.35
+		_mul2 = _max * _max;
+
+		// step.36
+		_mul3 = _mul2 * _max;
+
+		// step.37
+		_fac2divx = 2 / _max;
+
+		// step.38
+		_fac2divx2 = 2 / _mul2;
+
+		// step.39
+		_facFilPDif2 = -1 / _mul3;
+
+		// step.40
+		_facFilPDif1 = (1 + _fac2divx + _fac2divx2) - _facFilPDif2;
+
+		// step.41
+		_fac3divx3 = 3 / _mul3;
+
+		// step.42
+		_facFilPDif3 = _fac2divx2 + _fac3divx3;
+
+		// step.43
+		_facFilPDif4 = -4 / _mul2 - _fac2divx - _fac3divx3;
+
+		// step.44
+		PFltSig_pPfilDifFildBuf = (PFlt_pPFltDiffB1 - _facFilPDif4 * PFltSig_pPfilDifFildBuf1 - _facFilPDif3 * PFltSig_pPfilDifFildBuf2 - _facFilPDif2 * PFltSig_pPfilDifFildBuf3) / _facFilPDif1;
+
+		// step.45
+		PFltSig_pPfilDifFild = PFltSig_pPfilDifFildBuf;
+
+		// step.46
+		PFltSig_vfEgPfil = _vfEgPfil;
+	// ================ PFltSig_PCdng.Main.Volumetric_Flow_Filtering_3 End   ================
+	}
+};
+
+function PFltSig_RelsPCorrln_100ms () {
+	/*
+	  ╔════════════════════════════════════════════╗
+	  ║	                                           ║
+	  ║	       PFltSig_RelsPCorrln.Main            ║
+	  ║        运行步长 100ms                      ║
+	  ║                                            ║
+	  ║                                            ║
+	  ╚════════════════════════════════════════════╝
+	*/
+	with (memory) {
+	// step.1
+	if (!((getBit(0, PFlt_stActv)) && (getBit(1, PFlt_stActv)))) return;
+
+	// step.2
+	let _t1 =  (PFltSig_vfEgPfilCorrdFild - PFltSig_vfEgPfilOldRels) / ESC_tiSampling * 1000000;
+	PFltSig_dvfEgPfilFild = ((_t1 >= -32768) ? ((_t1 <= 32767) ? _t1 : 32767) : -32768);		
+
+	// step.3
+	PFltSig_dvfEgPfilFildAbslt = Math.abs((PFltSig_dvfEgPfilFild > -32767) ? PFltSig_dvfEgPfilFild : -32767);
+
+	// step.4
+	PFltSig_vfEgPfilOldRels = PFltSig_vfEgPfilCorrdFild;
+
+	// step.5
+	_t2_bit6 = turnOnDelay (PFlt_flgEngOnOld, PFlt_flgEngOn, timer_PFltSig_tiNormMin_C, PFltSig_tiNormMin_C, ESC_tiSampling/1000000);
+	PFlt_flgEngOnOld = PFlt_flgEngOn;
+
+	// step.6 not blocked byF FId DINH_stFId_PFltSigRelsPCorrln
+	PFltSig_stRelsCondMon = putBit(0, 1, PFltSig_stRelsCondMon, 16);
+
+	// step.7
+	if (MDG1MSGCNCPT_SC) {
+		PFltSig_stRelsCondMon = putBit(1, !B_kh_msg, PFltSig_stRelsCondMon, 16);
+	} else {
+		PFltSig_stRelsCondMon = putBit(1, !B_kh, PFltSig_stRelsCondMon, 16);
+	}
+
+	// step.8
+	if (MDG1MSGCNCPT_SC) {
+		PFltSig_stRelsCondMon = putBit(2, !B_sa_msg, PFltSig_stRelsCondMon, 16);
+	} else {
+		PFltSig_stRelsCondMon = putBit(2, !B_sa, PFltSig_stRelsCondMon, 16);
+	}
+
+	// step.9
+	_t2_bit3 = (PFltSig_dvfEgPfilFildAbslt >= PFltSig_dvfEgPfilFildMin_C && PFltSig_dvfEgPfilFildAbslt <= PFltSig_dvfEgPfilFildMax_C)?1:0;
+	PFltSig_stRelsCondMon = putBit(3, _t2_bit3, PFltSig_stRelsCondMon, 16);
+
+	// step.10
+	PFltSig_stRelsCondMon = putBit(4, PFlt_flgDewpPfil, PFltSig_stRelsCondMon, 16);
+
+	// step.11
+	PFltSig_stRelsCondMon = putBit(5, PFltRgn_flgRgnRunng?0:1, PFltSig_stRelsCondMon, 16);
+
+	// step.12
+	PFltSig_stRelsCondMon = putBit(6, _t2_bit6, PFltSig_stRelsCondMon, 16);
+	}
+};
+
+function PFltSig_Coorr_100ms () { 
+	with (memory) {
+	// step.1
+	if (!((getBit(0, PFlt_stActv)) && (getBit(1, PFlt_stActv)))) return;
+	
+	// step.2
+	PFltSig_stEvln = (PFltSig_PCorrln2SWE_I >= PFltSig_tiEfcDurnMin_C);
+
+	// step.3/4
+	_stRstCrssCorrln = !(bitComp(PFltSig_stRelsCondMon, PFltSig_stRstCrssCorrln_C));
+	PFltSig_stRstCrssCorrln = (PFltSig_stRstCrssCorrlnMan_C || _stRstCrssCorrln);
+
+	// step.5
+	PFltSig_stHaltCrssCorrln = !(bitComp(PFltSig_stRelsCondMon, PFltSig_stHaltCrssCorrln_C));
+
+	// step.6/7/8/9/10/11
+	PFltSig_StMacPBasd.Eval  = PFltSig_stEvln;
+	PFltSig_StMacPBasd.Reset = PFltSig_stRstCrssCorrln;
+	PFltSig_StMacPBasd.Hold  = PFltSig_stHaltCrssCorrln;
+	PFltSig_StMacPBasd.Compu = !((PFltSig_stRstCrssCorrln) || (PFltSig_stHaltCrssCorrln) || (PFltSig_stEvln));
+	PFLTSIG_CORRLN_STMAC_IMPL_trigger();
+	PFltSig_stStMac = PFltSig_StMacPBasd.State;
+
+	// step.12/13 E-I timer
+	PFltSig_PCorrln2SWE_I = timer_E_I (PFltSig_PCorrln2SWE_I, PFltSig_StMacPBasd.State === 'compute', (PFltSig_StMacPBasd.State == 'restart') || (PFltSig_StMacPBasd.State == 'evaluate'), ESC_tiSampling/1000000);
+	
+	// step.14
+	PFltSig_tiEfcDurn = PFltSig_PCorrln2SWE_I;
+	}
+
+	
+};
+
+function PFltSig_PCorrln_100ms () {
+	/*
+	  ╔═════════════════════════════════════╗
+	  ║	                                    ║
+	  ║	       PFltSig_PCorrln              ║
+	  ║        运行步长 100ms               ║
+	  ║                                     ║
+	  ╚═════════════════════════════════════╝
+	*/
+	with(memory) {
+	// PFltSig_PCorrln.Main
+		// step.1
+		if (!((getBit(0, PFlt_stActv)) && (getBit(1, PFlt_stActv)))) return;
+		
+		// step.2
+		PFltSig_flgPCorrlnSuc = (PFltSig_stStMac == 'evaluate');
+
+		// step.3
+		PFltSig_pDeltaPfilDifFild = PFltSig_pPfilDifFild - PFltSig_pPfilDifFildOld;
+
+		// step.4
+		PFltSig_vfDeltaEgPfilCorrdFild = PFltSig_vfEgPfilCorrdFild - PFltSig_vfEgPfilCorrdBufOld;
+		// step.5
+		PFltSig_vfSqDeltaEgPfilCorrdFild = PFltSig_vfSqEgPfilCorrdFild - PFltSig_vfSqEgPfilCorrdOld;
+
+		// step.6
+		PFltSig_pPfilDifFildOld = PFltSig_pPfilDifFild;
+
+		// step.7
+		PFltSig_vfEgPfilCorrdBufOld = PFltSig_vfEgPfilCorrdFild;
+
+		// step.8
+		PFltSig_vfSqEgPfilCorrdOld = PFltSig_vfSqEgPfilCorrdFild;
+
+		// step.9
+		PFltSig_pDeltaPfilDifRef = PFltSig_vfDeltaEgPfilCorrdFild * PFltSig_rFlowPfilRef_C + PFltSig_vfSqDeltaEgPfilCorrdFild * PFltSig_facPDeltaPfilRefCorr_C;
+
+		// step.10
+		if (PFltSig_stStMac == 'compute') {
+    		PFltSig_facPCrssCorrln = PFltSig_pDeltaPfilDifFild * PFltSig_pDeltaPfilDifRef + PFltSig_facPCrssCorrln;    
+    		PFltSig_facPSelfCorrln = (PFltSig_pDeltaPfilDifRef * PFltSig_pDeltaPfilDifRef) + PFltSig_facPSelfCorrln;
+    		PFltSig_ratPCorrlnBuf1 = (0.0000001 > PFltSig_facPSelfCorrln) ? PFltSig_ratPCorrlnBuf2 : (PFltSig_facPCrssCorrln / PFltSig_facPSelfCorrln);
+  		}
+
+  		// step.11
+  		if (PFltSig_stStMac == 'evaluate') {
+    		PFltSig_ratPCorrlnBuf2 = PFltSig_ratPCorrlnBuf1;
+  		}
+
+  		// step.12
+  		if ((PFltSig_stStMac == 'evaluate') || (PFltSig_stStMac == 'restart')) {
+    		PFltSig_facPCrssCorrln = 0.00000005;
+    		PFltSig_facPSelfCorrln = 0.0000001;
+    		PFltSig_ratPCorrlnBuf1 = 0.5;
+		}
+
+  		PFltSig_ratPCorrln = (PFltSig_ratPCorrlnBuf2 < -32.768) ? -32.768 : ((PFltSig_ratPCorrlnBuf2 > 32.767) ? 32.767 : PFltSig_ratPCorrlnBuf2);
+	}
+};
+
+function importChannelDataToMemory (mdf, channelnames, memoryNS = memory.measurements, simStepSize = 0.02) {
+	const tArray = mdf.dgBlocks[0].cgBlocks[0].cnBlocks[0].rawDataArray;
+	tEnd = tArray[tArray.length - 1];
+
+	for (const name of channelnames) {
+		let theCNBlock;
+		let result = mdf.searchChannelsByRegExp(new RegExp(name+'\\\\'));
+		if (result.length > 0) theCNBlock = result[0];
+		else {
+			result = mdf.searchChannelsByRegExp(name);
+			if (result.length > 0) theCNBlock = result[0];
+			else theCNBlock = null;		
+		}
+
+		if (theCNBlock) {
+			const theCNBlock = result[0];
+
+			const rawTimeArray = theCNBlock.parent.cnBlocks[0].rawDataArray,
+				  rawDataArray = (isDiscrete(theCNBlock)) ? theCNBlock.rawDataArray: theCNBlock.ccBlock.convertAll(theCNBlock.rawDataArray);
+			const normTimeArray = [],
+				  normDataArray = [];
+			for (let t = 0; t <= tEnd; t+=simStepSize) {
+				if (!memory.timeNormalized) normTimeArray.push(t);				
+				normDataArray.push(binarySearchChannel(t, rawTimeArray, rawDataArray, theCNBlock.isDiscrete));
+			}
+
+			if (!memory.timeNormalized) memory.time = normTimeArray;
+			memoryNS[name] = normDataArray;
+			memory.timeNormalized = true;
+						
+		} else {
+			memoryNS[name] = [];
+		}
+	}
+
+	function isBoolChannel (cnBlock) {
+		const _c = cnBlock.ccBlock.additionalConversionData;
+
+		if (_c.length === 4 && _c[0] === 0 && _c[2] === 1) {
+			if (typeof _c[1] === 'string' && typeof _c[3] === 'string') {
+				if (_c[1].match(/FALSE/i) && _c[3].match(/TRUE/i)) {					
+					return cnBlock.isBool = true;
+				}
+			}
+		}
+
+		return cnBlock.isBool = false;
+	}
+
+	function isDiscrete (cnBlock) {
+		const _c = cnBlock.ccBlock.additionalConversionData;
+
+		const len = _c.length;
+		for (let i = 1; i < len; i+=2) {
+			if (typeof _c[i] != 'string') return cnBlock.isDiscrete = false;
+		}
+
+		return cnBlock.isDiscrete = true;
+	}
+
+	function normalizeStep (cnBlock, simStepSize) {
+
+	}
+};
+
+function binarySearchChannel (t, timeArray, dataArray, isDiscrete = false) {
+
+    const n = timeArray.length;
+    if (dataArray.length != n) {
+        console.log('The size of time and data don\'t match');
+        return NaN;
+    }
+    const tMin = timeArray[0];
+    const tMax = timeArray[n - 1];
+	if (t <= tMin) return dataArray[0];
+	if (t >= tMax) return dataArray[n - 1];
+
+	let low = 0, high = n - 1, tMid = 0, mid = parseInt((t - timeArray[low])/(timeArray[high] - timeArray[low])*(high - low)) + low;
+
+	while (low <= high) {
+		tMid = timeArray[mid];
+		if (t > tMid) {
+			if ( (t-timeArray[mid]) * (t-timeArray[mid+1]) < 0 ) {
+				if (isDiscrete) {
+					return (Math.abs(t - timeArray[mid]) < Math.abs(t - timeArray[mid+1]))?dataArray[mid]:dataArray[mid+1];
+				} else {
+					return interpolate(t, timeArray[mid], timeArray[mid+1], dataArray[mid], dataArray[mid+1]);
+				}				
+			}
+			low = mid;
+			mid = (parseInt((t - timeArray[low])/(timeArray[high] - timeArray[low])*(high - low)) | 1) + low;	
+		} else if ( t < tMid) {
+			if ( (t-timeArray[mid]) * (t-timeArray[mid-1]) < 0 ) {
+				if (isDiscrete) {
+					return (Math.abs(t - timeArray[mid]) < Math.abs(t - timeArray[mid-1]))?dataArray[mid]:dataArray[mid-1];
+				} else {
+					return interpolate(t, timeArray[mid-1], timeArray[mid], dataArray[mid-1], dataArray[mid]);
+				}
+			}
+			high = mid;
+			mid = high - (parseInt((timeArray[high] - t)/(timeArray[high] - timeArray[low])*(high - low)) | 1);	
+		} else {
+			return dataArray[mid];
+		}
+	}
+}
+
+function readCurrentChannelDataInMemory (i, channelnames, memoryNS = memory.measurements) {
+	for (const name of channelnames) {
+		memory[name] = memoryNS[name][i];
+	}
+};
+
+function archiveChannels (channelnames, memoryNS = memory) {
+	for (const name of channelnames) {
+		if (memory.archives[name] === undefined) memory.archives[name] = [];
+		memory.archives[name].push(memoryNS[name]);
+	}
+}
+
+function clearMemoryArchives () {
+	for (const key in memory.archives) {
+		memory.archives[key] = [];
+	}
+}
+
+function turnOnDelay (sourceOld, source, timer, T, dT) {
+	let out;
+
+	if (timer > 0) timer -= dT;
+
+	if ((!sourceOld) && source) {
+		timer = T;
+	}
+
+	if (source && timer > 0) {
+		out = source ? 0 : 1; //取反
+	} else out = source;
+
+	return out;
+};
+
+function stopECUSim () {
+	clearInterval(intervalRunner);
+	document.getElementById('text').innerText = counter;
+}
+
+function updatePlot() {
+	const simu_PFltSig_ratPCorrln = {
+		name: '[仿]CCF',
+		x: memory.time,
+		y: memory.archives.PFltSig_ratPCorrln,
+	};
+	const meas_PFltSig_ratPCorrln = {
+		name: '[测]CCF',
+		x: memory.time,
+		y: memory.measurements.PFltSig_ratPCorrln,
+	};
+	Plotly.newPlot('figure00', [simu_PFltSig_ratPCorrln, meas_PFltSig_ratPCorrln]);
+	//-----------------------------------------------------
+	const simu_PFltSig_facPCrssCorrln = {
+		name: '[仿]PFltSig_facPCrssCorrln',
+		x: memory.time,
+		y: memory.archives.PFltSig_facPCrssCorrln,
+	}
+	const meas_PFltSig_facPCrssCorrln = {
+		name: '[测]PFltSig_facPCrssCorrln',
+		x: memory.time,
+		y: memory.measurements.PFltSig_facPCrssCorrln,
+	}
+	Plotly.newPlot('figure-d', [simu_PFltSig_facPCrssCorrln, meas_PFltSig_facPCrssCorrln])
+	//------------------------------------------------------
+	const simu_PFltSig_facPSelfCorrln = {
+		name: '[仿]PFltSig_facPSelfCorrln',
+		x: memory.time,
+		y: memory.archives.PFltSig_facPSelfCorrln,
+	}
+	const meas_PFltSig_facPSelfCorrln = {
+		name: '[测]PFltSig_facPSelfCorrln',
+		x: memory.time,
+		y: memory.measurements.PFltSig_facPSelfCorrln,
+	}
+	Plotly.newPlot('figure-n', [simu_PFltSig_facPSelfCorrln, meas_PFltSig_facPSelfCorrln])
+	//------------------------------------------------------
+	const simu_PFltSig_vfDeltaEgPfilCorrdFild = {
+		name: '[仿]DeltaV',
+		x: memory.time,
+		y: memory.archives.PFltSig_vfDeltaEgPfilCorrdFild,
+	}
+	const meas_PFltSig_vfDeltaEgPfilCorrdFild = {
+		name: '[测]DeltaV',
+		x: memory.time,
+		y: memory.measurements.PFltSig_vfDeltaEgPfilCorrdFild
+	}
+	Plotly.newPlot('figure-Delta-V', [simu_PFltSig_vfDeltaEgPfilCorrdFild, meas_PFltSig_vfDeltaEgPfilCorrdFild])
+	//------------------------------------------------------
+	const simu_PFltSig_vfSqDeltaEgPfilCorrdFild = {
+		name: '[仿]DeltaV2',
+		x: memory.time,
+		y: memory.archives.PFltSig_vfSqDeltaEgPfilCorrdFild
+	}
+	const meas_PFltSig_vfSqDeltaEgPfilCorrdFild = {
+		name: '[测]DeltaV2',
+		x: memory.time,
+		y: memory.measurements.PFltSig_vfSqDeltaEgPfilCorrdFild
+	}
+	Plotly.newPlot('figure-Delta-V2', [simu_PFltSig_vfSqDeltaEgPfilCorrdFild, meas_PFltSig_vfSqDeltaEgPfilCorrdFild])
+	//------------------------------------------------------
+	const simu_PFltSig_pDeltaPfilDifFild = {
+		name: '[仿]Delta P',
+		x: memory.time,
+		y: memory.archives.PFltSig_pDeltaPfilDifFild,
+	};
+	const meas_PFltSig_pDeltaPfilDifFild = {
+		name: '[测]Delta P',
+		x: memory.time,
+		y: memory.measurements.PFltSig_pDeltaPfilDifFild,
+	};
+	Plotly.newPlot('figure-Delta-P', [simu_PFltSig_pDeltaPfilDifFild, meas_PFltSig_pDeltaPfilDifFild]);
+	//--------------------------------------------------------------------------
+	const trace_PFlt_pPFltDiffB1 = {
+		name: '[测]压差PFlt_pPFltDiffB1',
+		x: memory.time,
+		y: memory.measurements.PFlt_pPFltDiffB1,
+		type: 'scatter',
+	};
+	const trace_PFltSig_pPfilDifFild = {
+		name: '[仿]压差滤波值PFltSig_pPfilDifFild',
+		x: memory.time,
+		y: memory.archives.PFltSig_pPfilDifFild,
+		type: 'scatter',
+	};
+	const meas_PFltSig_pPfilDifFild = {
+		name: '[测]压差滤波值PFltSig_pPfilDifFild',
+		x: memory.time,
+		y: memory.measurements.PFltSig_pPfilDifFild,
+		type: 'scatter',
+	};
+	Plotly.newPlot('figure01', [trace_PFlt_pPFltDiffB1, trace_PFltSig_pPfilDifFild, meas_PFltSig_pPfilDifFild]);
+	//----------------------------------------------------------------------------------------------------------
+	const trace_PFlt_mfExhB1 = {
+		name: '[测]排气质量流量PFlt_mfExhB1',
+		x: memory.time,
+		y: memory.measurements.PFlt_mfExhB1,
+	};
+	const trace_PFltSig_vfEgPfil = {
+		name: '[仿]体积流量PFltSig_vfEgPfil',
+		x: memory.time,
+		y: memory.archives.PFltSig_vfEgPfil,
+		type: 'scatter',
+	};
+	const simu_PFltSig_vfEgPfilCorrdFild = {
+		name: '[仿]流量滤波值PFltSig_vfEgPfilCorrdFild',
+		x: memory.time,
+		y: memory.archives.PFltSig_vfEgPfilCorrdFild,
+	};
+	const meas_PFltSig_vfEgPfilCorrdFild = {
+		name: '[测]流量滤波值PFltSig_vfEgPfilCorrdFild',
+		x: memory.time,
+		y: memory.measurements.PFltSig_vfEgPfilCorrdFild,
+	};
+	Plotly.newPlot('figure02', [trace_PFlt_mfExhB1, trace_PFltSig_vfEgPfil, simu_PFltSig_vfEgPfilCorrdFild, meas_PFltSig_vfEgPfilCorrdFild]);
+	//-----------------------------------------------------------------------------------
+	const simu_PFltSig_stRelsCondMon = {
+		name: '[仿]PFltSig_stRelsCondMon',
+		x: memory.time,
+		y: memory.archives.PFltSig_stRelsCondMon,
+	};
+	const meas_PFltSig_stRelsCondMon = {
+		name: '[测]PFltSig_stRelsCondMon',
+		x: memory.time,
+		y: memory.measurements.PFltSig_stRelsCondMon,
+	};
+	Plotly.newPlot('figure03',[simu_PFltSig_stRelsCondMon, meas_PFltSig_stRelsCondMon]);
+	//----------------------------------------------------------------------------------
+	const simu_PFltSig_stStMac = {
+		name: '[仿]PFltSig_stStMac',
+		x: memory.time,
+		y: memory.archives.PFltSig_stStMac,
+	};
+	const meas_PFltSig_stStMac = {
+		name: '[测]PFltSig_stStMac',
+		x: memory.time,
+		y: memory.measurements.PFltSig_stStMac.map((d) => {
+			switch (d) {
+				case 0: return 'restart';
+				case 1: return 'wait';
+				case 2: return 'compute';
+				case 3: return 'evaluate';
+			}
+		}),
+	}
+	Plotly.newPlot('figure04', [simu_PFltSig_stStMac, meas_PFltSig_stStMac]);
+	//----------------------------------------------------------------------------------
+	const meas_PFlt_flgDewpPfil = {
+		name: 'PFlt_flgDewpPfil',
+		x: memory.time,
+		y: memory.measurements.PFlt_flgDewpPfil,
+	};
+	const meas_PFltRgn_flgRgnRunng = {
+		name: 'PFltRgn_flgRgnRunng',
+		x: memory.time,
+		y: memory.measurements.PFltRgn_flgRgnRunng,
+		type: 'scatter',
+	};
+	const meas_PFlt_flgEngOn = {
+		name: 'PFlt_flgEngOn',
+		x: memory.time,
+		y: memory.measurements.PFlt_flgEngOn,
+		type: 'scatter',
+	}
+	Plotly.newPlot('figure05', [meas_PFlt_flgDewpPfil, meas_PFltRgn_flgRgnRunng, meas_PFlt_flgEngOn]);
+	//-------------------------------------------
+	const simu_PFltSig_dvfEgPfilFild = {
+		name: '[仿]体积流量变化率',
+		x: memory.time,
+		y: memory.archives.PFltSig_dvfEgPfilFild,
+	}
+	const meas_PFltSig_dvfEgPfilFild = {
+		name: '[测]体积流量变化率',
+		x: memory.time,
+		y: memory.measurements.PFltSig_dvfEgPfilFild,
+	}
+	Plotly.newPlot('figure06', [simu_PFltSig_dvfEgPfilFild, meas_PFltSig_dvfEgPfilFild]);
+	//-------------------------------------------
+	const simu_PFltSig_dvfEgPfilFildAbslt = {
+		name: '[仿]体积流量变化率绝对值',
+		x: memory.time,
+		y: memory.archives.PFltSig_dvfEgPfilFildAbslt,
+	};
+	const meas_PFltSig_dvfEgPfilFildAbslt = {
+		name: '[测]体积流量变化率绝对值',
+		x: memory.time,
+		y: memory.measurements.PFltSig_dvfEgPfilFildAbslt,
+	}
+	Plotly.newPlot('figure07', [simu_PFltSig_dvfEgPfilFildAbslt]);
+	//--------------------------------------------------------------
+	const meas_PFltSig_stEvln = {
+		name: '[测]Ev输入',
+		x: memory.time,
+		y: memory.measurements.PFltSig_stEvln
+	};
+	const simu_PFltSig_stEvln = {
+		name: '[仿]Ev输入',
+		x: memory.time,
+		y: memory.archives.PFltSig_stEvln.map((d) => (d?1:0)),
+	}
+	Plotly.newPlot('figure08', [simu_PFltSig_stEvln, meas_PFltSig_stEvln]);
+	//-------------------------------------------------------------
+	const meas_PFltSig_stRstCrssCorrln = {
+		name: '[测]Rest输入',
+		x: memory.time,
+		y: memory.measurements.PFltSig_stRstCrssCorrln
+	};
+	const simu_PFltSig_stRstCrssCorrln = {
+		name: '[仿]Rest输入',
+		x: memory.time,
+		y: memory.archives.PFltSig_stRstCrssCorrln.map((d) => (d?1:0)),
+	}
+	Plotly.newPlot('figure09', [simu_PFltSig_stRstCrssCorrln, meas_PFltSig_stRstCrssCorrln]);
+	//--------------------------------------------------------------------------------------
+	const simu_PFltSig_tiEfcDurn = {
+		name: '[仿]触发Evaluate累计时间',
+		x: memory.time,
+		y: memory.archives.PFltSig_tiEfcDurn,
+	}
+	const meas_PFltSig_tiEfcDurn = {
+		name: '[测]触发Evaluate累计时间',
+		x: memory.time,
+		y: memory.measurements.PFltSig_tiEfcDurn,
+	}
+	Plotly.newPlot('figure10', [simu_PFltSig_tiEfcDurn, meas_PFltSig_tiEfcDurn]);
+	//--------------------------------------------------------------------------
+}
+
+function timer () {
+	let counter = 0;
+
+	setInterval(() => {
+		counter++;
+
+		if (counter % 20 === 0) {
+			PFltSig_PCdng_20ms.call(null);
+		}
+
+		if (counter % 100 === 0) {
+
+		}
+	});
+};
+
+function timer_E_I (old, E, I, dT) {
+	let out = old;
+	if (E) out += dT;
+	if (I) out = 0;
+	return out;
+}
+
+function PFLTSIG_CORRLN_STMAC_IMPL_trigger () {
+	with (memory){
+	switch (PFltSig_StMacPBasd.sm) {
+		case 'Compute':
+			if (PFltSig_StMacPBasd.Eval) {
+				PFltSig_StMacPBasd.State = 'evaluate';
+				PFltSig_StMacPBasd.sm = 'Evaluate';
+				break;
+			}
+
+			if (PFltSig_StMacPBasd.Reset) {
+				PFltSig_StMacPBasd.State = 'restart';
+				PFltSig_StMacPBasd.sm = 'Init';
+				break;
+			}
+
+			if (PFltSig_StMacPBasd.Hold) {
+				PFltSig_StMacPBasd.State = 'wait';
+				PFltSig_StMacPBasd.sm = 'Wait';
+				break;
+			}
+			PFltSig_StMacPBasd.State = 'compute';
+			break;			
+
+		case 'Evaluate': 
+			if (PFltSig_StMacPBasd.Compu) {
+				PFltSig_StMacPBasd.State = 'compute';
+				PFltSig_StMacPBasd.sm = 'Compute';
+				break;
+			}
+
+			PFltSig_StMacPBasd.State = 'restart';
+			PFltSig_StMacPBasd.sm = 'Init';
+			break;		
+
+		case 'Wait': 
+			if (PFltSig_StMacPBasd.Reset) {
+				PFltSig_StMacPBasd.State = 'restart';
+				PFltSig_StMacPBasd.sm = 'Init';
+				break;
+			}
+
+			if (PFltSig_StMacPBasd.Compu) {
+				PFltSig_StMacPBasd.State = 'compute';
+				PFltSig_StMacPBasd.sm = 'Compute';
+				break;
+			}
+
+			PFltSig_StMacPBasd.State = 'wait';
+			break;
+
+		case 'Init':
+		default: 
+			if (PFltSig_StMacPBasd.Compu) {
+				PFltSig_StMacPBasd.State = 'compute';
+				PFltSig_StMacPBasd.sm = 'Compute';
+				break;
+			}
+			PFltSig_StMacPBasd.State = 'restart';
+			break;
+	}}
+};
+
+function initMonitorMemoryChannels (containerHTMLElement, channelnames, memoryNS = memory) {
+};
+</script>
