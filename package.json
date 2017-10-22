@@ -15,5 +15,8 @@
   "license": "ISC",
   "devDependencies": {
     "electron-prebuilt": "^1.4.13"
+  },
+  "dependencies": {
+    "echarts": "^3.7.2"
   }
 }

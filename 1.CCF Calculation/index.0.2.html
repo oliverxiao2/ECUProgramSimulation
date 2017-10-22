@@ -1,12 +1,196 @@
-<input type="file" id="importMDFFile">
+<head>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" href="./styles/bootstrap.flatly.min.css">
 
-<p id='step-indicator'></p>
-<div id="progress-indicator" style="width:10px;height: 10px;background: red; "></div>
+	<style>
+		body {
+			width: 100%;
+			padding: 0;
+		}
+		.ECUChart {
+			width: 100%;
+			height: 800px;
+		}
+		.cnFont {
+			font-family: 'Simhei' !important;
+		}
+		.btn {
+			outline: none;
+		}
+		.btn:focus {
+			outline: none;
+		}
+	</style>
+</head>
 
-<script type="text/javascript" src="scripts/ECUSIM.js"></script>
-<script type="text/javascript" src="lib/MDF.0.9.js"></script>
+<body>
+	<div style="width:100%; display:flex; flex-direction:row;">
+		<div style="width:400px;background-color:#ecf0f1;padding:15px;">
+			<form>
+				<div class="form-group">
+					<a href="#" class="btn btn-default btn-lg" id="btn_import_dat_file" onclick="document.getElementById('importMDFFile').click()">DAT</a>
+					<input type="file" id="importMDFFile" style="display:none;">
+					<a href="#" class="btn btn-default btn-lg" onclick="f1()">Run</a>
+				</div>				
+				<div class="form-group">
+					<label for="input_filename">Measurement</label>
+					<input type="email" class="form-control" id="input_filename" readonly="readonly" placeholder="*.dat">
+				</div>
+				<div class="form-group">
+					<label for="input_PFltSig_rFlowPfilRef_C">PFltSig_rFlowPfilRef_C</label>
+					<input type="number" class="form-control" id="input_PFltSig_rFlowPfilRef_C" value="0.0185">
+				</div>
+				<div class="form-group">
+					<label for="input_PFltSig_facPDeltaPfilRefCorr_C">PFltSig_facPDeltaPfilRefCorr_C</label>
+					<input type="number" class="form-control" id="input_PFltSig_facPDeltaPfilRefCorr_C" value="0.000018">
+				</div>
+				<div class="form-group">
+					<label for="input_PFLT_VAR_SY">PFLT_VAR_SY</label>
+					<input type="number" class="form-control" id="input_PFLT_VAR_SY" value="385">
+				</div>
+				<div class="form-group">
+					<label for="input_PFltSig_tiFilPDif_C">PFltSig_tiFilPDif_C</label>
+					<input type="number" class="form-control" id="input_PFltSig_tiFilPDif_C" value="293">
+				</div>
+				<div class="form-group">
+					<label for="input_PFltSig_tiFilVf_C">PFltSig_tiFilVf_C</label>
+					<input type="number" class="form-control" id="input_PFltSig_tiFilVf_C" value="5">
+				</div>
+				<div class="form-group">
+					<label for="input_PFltSig_ratRFlowEg_T">PFltSig_ratRFlowEg_T</label>
+					<input type="button" class="form-control" id="input_PFltSig_ratRFlowEg_T" value="Check Curve">
+				</div>
+				<div class="form-group">
+					<label for="input_PFltSig_tiFilVf_C">PFltSig_tiFilVf_C</label>
+					<input type="number" class="form-control" id="input_PFltSig_tiFilVf_C" value="5">
+				</div>
+
+				<div class="form-group">
+					<label for="input_MDG1MSGCNCPT_SC">MDG1MSGCNCPT_SC</label>
+					<input class="form-control" id="input_MDG1MSGCNCPT_SC" value="0">
+				</div>
+
+				<div class="form-group">
+					<label for="input_PFltSig_tiNormMin_C">PFltSig_tiNormMin_C</label>
+					<input class="form-control" id="input_PFltSig_tiNormMin_C" value="20">
+				</div>
+
+				<div class="form-group">
+					<label for="input_PFltSig_dvfEgPfilFildMin_C">PFltSig_dvfEgPfilFildMin_C</label>
+					<input class="form-control" id="input_PFltSig_dvfEgPfilFildMin_C" value="35">
+				</div>
+
+				<div class="form-group">
+					<label for="input_PFltSig_dvfEgPfilFildMax_C">PFltSig_dvfEgPfilFildMax_C</label>
+					<input class="form-control" id="input_PFltSig_dvfEgPfilFildMax_C" value="300">
+				</div>
+
+				<div class="form-group">
+					<label for="input_PFltSig_tiEfcDurnMin_C">PFltSig_tiEfcDurnMin_C</label>
+					<input class="form-control" id="input_PFltSig_tiEfcDurnMin_C" value="20">
+				</div>
+
+				<div class="form-group">
+					<label for="input_PFltSig_stRstCrssCorrln_C">PFltSig_stRstCrssCorrln_C</label>
+					<input class="form-control" id="input_PFltSig_stRstCrssCorrln_C" value="113">
+				</div>
+
+				<div class="form-group">
+					<label for="input_PFltSig_stHaltCrssCorrln_C">PFltSig_stHaltCrssCorrln_C</label>
+					<input class="form-control" id="input_PFltSig_stHaltCrssCorrln_C" value="13">
+				</div>
+
+				<div class="form-group">
+					<label for="exampleFormControlSelect2">Example multiple select</label>
+					<select multiple class="form-control" id="exampleFormControlSelect2">
+					<option>1</option>
+					<option>2</option>
+					<option>3</option>
+					<option>4</option>
+					<option>5</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="exampleFormControlTextarea1">Example textarea</label>
+					<textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+				</div>
+			</form>
+		</div>
+		<div style="flex:1;">
+			<p id='step-indicator'></p>
+			<div class="progress">
+				<div id="progress-indicator" class="progress-bar progress-bar-info" style="width: 0%"></div>
+			</div>
+			<div id="chart-collection-box">
+				<div id="chart-dp-dv" style="width:100%;height:400px;"></div>
+			</div>
+		</div>
+	</div>	
+</body>
+
+
+
+<script src="scripts/ECUSIM.js"></script>
+<script src="lib/MDF.0.9.js"></script>
+<script src="lib/plotly.v1.31.0.min.js"></script>
+<script src="lib/numeric-1.2.6.min.js"></script>
+<script src="ECU_modules/1.PFltSig_PCdng_20ms.js"></script>
+<script src="ECU_modules/2.PFltSig_RelsPCorrln_100ms.js"></script>
+<script src="ECU_modules/3.PFltSig_Coorr_100ms.js"></script>
+<script src="ECU_modules/4.PFltSig_PCorrln_100ms.js"></script>
+<script src="scripts/ECUMathExtension.js"></script>
+
 <script type="text/javascript">
 	var myECU = new ECUSIM ({
 		inputFileHTMLElement: document.getElementById('importMDFFile'),
 	});
+
+	function f1() {
+		myECU.runModule({
+			ECUModule: myECU.modules.CCF
+		});
+	}
+
+	function f2() {
+		myECU.updateChart([
+			'PFltSig_facPCrssCorrln',
+			'PFltSig_facPSelfCorrln',
+			'PFltSig_ratPCorrln'], 'chart-01');
+		/*
+			'PFltSig_pPfilDifFild',
+			'PFltSig_vfEgPfilCorrdFild', 
+			'PFltSig_stStMac', 
+			'PFltSig_stRelsCondMon', 
+			'PFltSig_tiEfcDurn',
+		*/
+
+		// dp-dv
+		const pts = 2000;
+		const dv = Math.resample(Array.from(myECU.memory.archives.PFltSig_vfDeltaEgPfilCorrdFild), pts);
+		const dp = Math.resample(Array.from(myECU.memory.archives.PFltSig_pDeltaPfilDifRef), pts);
+		const trace_dp_dv = {
+			x: dv,
+			y: dp,
+			type: 'scatter',
+			mode: 'markers',
+		}
+		const corr = Math.regression(dv, dp, 2);
+		const fitXDomain = [, ];
+		const fitX = Math.arange(Math.getMin(dv), Math.getMax(dv), 0.1);
+		const fitY = fitX.map((d)=> corr[0]+corr[1]*d+corr[2]*d*d);
+		const trace_fit = {
+
+			x: fitX,
+			y: fitY,
+			type: 'line',
+		}
+		const layout = {
+			title: corr[2] + ',' + corr[1] + ',' + corr[0]
+		}
+
+		Plotly.newPlot('chart-dp-dv', [trace_dp_dv, trace_fit], layout);
+		
+	}
+	
+	
 </script>
