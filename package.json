@@ -1,0 +1,15 @@
+{
+  "name": "ecuprogramsimulation",
+  "version": "0.1.0",
+  "description": "Simulate specific modules in ECU program, especially for the pure math works.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ECU",
+    "Simulation"
+  ],
+  "author": "Akai",
+  "license": "ISC"
+}
