@@ -2,8 +2,9 @@
   "name": "ecuprogramsimulation",
   "version": "0.1.0",
   "description": "Simulate specific modules in ECU program, especially for the pure math works.",
-  "main": "main.js",
+  "main": "./app_start/main.js",
   "scripts": {
+    "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -11,5 +12,8 @@
     "Simulation"
   ],
   "author": "Akai",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "electron-prebuilt": "^1.4.13"
+  }
 }
