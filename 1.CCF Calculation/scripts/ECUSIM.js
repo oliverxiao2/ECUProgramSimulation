@@ -46,7 +46,10 @@ function ECUSIM ({
 		mdf = self.memory.MDF,
 		startup = 5, // unit: points
 		}) {
-		init();
+		if(init() === 'mdf not ready') {
+			alert('MDF未解析完')
+			return;
+		}
 		ECUModule.initialized = true;
 
 		const timeArray = self.memory.time;
@@ -94,7 +97,7 @@ function ECUSIM ({
 				if (self.progressIndicator) self.progressIndicator.style.width = '0%';
 			}, 0)
 			
-			if (!mdf) return;
+			if (!mdf) return 'mdf not ready';
 			let n;
 			for (const func of ECUModule.runningQuery) {
 				func.fObj = func.fObj || new func.f();
@@ -333,6 +336,7 @@ function ECUSIM ({
 			reader.onload = function (e) {
 				const arrayBuffer = e.target.result;
 				self.memory.MDF = new MDF(arrayBuffer, false);
+				alert('MDF ready');
 			}
 		})
 	})();
