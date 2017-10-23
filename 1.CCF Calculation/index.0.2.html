@@ -40,13 +40,13 @@
 					<input type="text" class="form-control" id="input_filename" readonly="readonly" placeholder="*.dat">
 				</div>
 				<div class="form-group">
-					<label for="input_PFltSig_facPDeltaPfilRefCorr_C">PFltSig_facPDeltaPfilRefCorr_C(B)</label>
-					<input type="number" class="form-control" id="input_PFltSig_facPDeltaPfilRefCorr_C" value="0.000018">
-				</div>
-				<div class="form-group">
 					<label for="input_PFltSig_rFlowPfilRef_C">PFltSig_rFlowPfilRef_C(A0)</label>
 					<input type="number" class="form-control" id="input_PFltSig_rFlowPfilRef_C" value="0.0185">
 				</div>
+				<div class="form-group">
+					<label for="input_PFltSig_facPDeltaPfilRefCorr_C">PFltSig_facPDeltaPfilRefCorr_C(B)</label>
+					<input type="number" class="form-control" id="input_PFltSig_facPDeltaPfilRefCorr_C" value="0.000018">
+				</div>				
 				<div class="form-group">
 					<label for="input_PFltSig_tiFilVf_C">PFltSig_tiFilVf_C</label>
 					<input type="number" class="form-control" id="input_PFltSig_tiFilVf_C" value="5">
@@ -199,9 +199,9 @@
 		Plotly.newPlot('chart-main', traces_main, layout00);
 
 		// dp-dv
-		const pts = 20000;
+		const pts = 2000;
 		const dvr = Math.resample(Array.from(myECU.memory.measurements.PFltSig_vfDeltaEgPfilCorrdFild), pts);
-		const dpr = Math.resample(Array.from(myECU.memory.measurements.PFltSig_pDeltaPfilDifRef), pts);
+		const dpr = Math.resample(Array.from(myECU.memory.measurements.PFltSig_pDeltaPfilDifFild), pts);
 		const dv = Math.resample(Array.from(myECU.memory.archives.PFltSig_vfDeltaEgPfilCorrdFild), pts);
 		const dp = Math.resample(Array.from(myECU.memory.archives.PFltSig_pDeltaPfilDifFild), pts);
 		const trace_dp_dv = {
@@ -221,7 +221,7 @@
 		const corr = Math.regression(dv, dp, 2);
 		const fitXDomain = [, ];
 		const fitX = Math.arange(Math.getMin(dv), Math.getMax(dv), 0.1);
-		const fitY = fitX.map((d)=> corr[0]+corr[1]*d+corr[2]*d*d);
+		const fitY = fitX.map((d)=> corr[0]*d+corr[1]*d*d);
 		const trace_fit = {
 			name: '[仿真] 拟合曲线',
 			x: fitX,
@@ -229,7 +229,7 @@
 			type: 'line',
 		}
 		const layout = {
-			title: corr[2] + ',' + corr[1] + ',' + corr[0]
+			title: '一次项系数'+corr[0]+', 二次项系数' + corr[1],
 		}
 
 		Plotly.newPlot('chart-dp-dv', [trace_dp_dv, trace_fit, meas_dp_dv], layout);
@@ -239,7 +239,10 @@
 			'PFltSig_pPfilDifFild',
 			'PFltSig_vfEgPfilCorrdFild',
 			'PFltSig_stStMac',
-			'PFltSig_tiEfcDurn'], 'chart-01');
+			'PFltSig_tiEfcDurn',
+			'PFltSig_pDeltaPfilDifFild',
+			'PFltSig_vfDeltaEgPfilCorrdFild',
+			'PFltSig_vfSqDeltaEgPfilCorrdFild'], 'chart-01');
 	
 	}
 
