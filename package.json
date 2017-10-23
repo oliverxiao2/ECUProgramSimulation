@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "package": "electron-packager ./dist --app-version=0.2.0 --platform=win32 --arch=ia32 --ignore=node_modules/electron-*"
+    "package": "electron-packager ./ ECUSIM --app-version=0.2.0 --platform=win32 --arch=ia32 --icon=./styles/app_icon/app.ico --ignore=node_modules/electron-*"
   },
   "keywords": [
     "ECU",
@@ -16,7 +16,8 @@
   "license": "ISC",
   "devDependencies": {
     "electron-packager": "^9.1.0",
-    "electron-prebuilt": "^1.4.13"
+    "electron-prebuilt": "^1.4.13",
+    "grunt-electron-installer": "^2.1.0"
   },
   "dependencies": {
     "echarts": "^3.7.2"
