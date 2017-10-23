@@ -83,7 +83,7 @@ Math.regression = (x, y, k) => {
 	for (let i = 0; i<x.length; i++) {
 		const Xi = [];
 
-		for (let j = 0; j <= k; j++) {
+		for (let j = 1; j <= k; j++) {
 			Xi.push(Math.pow(x[i], j));
 		}
 		X.push(Xi);
