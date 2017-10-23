@@ -5,7 +5,8 @@
   "main": "./app_start/main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "electron-packager ./dist --app-version=0.2.0 --platform=win32 --arch=ia32 --ignore=node_modules/electron-*"
   },
   "keywords": [
     "ECU",
@@ -14,6 +15,7 @@
   "author": "Akai",
   "license": "ISC",
   "devDependencies": {
+    "electron-packager": "^9.1.0",
     "electron-prebuilt": "^1.4.13"
   },
   "dependencies": {
