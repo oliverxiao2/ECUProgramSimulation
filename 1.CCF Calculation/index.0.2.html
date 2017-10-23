@@ -5,6 +5,7 @@
 	<style>
 		body {
 			width: 100%;
+			height:100%;
 			padding: 0;
 		}
 		.ECUChart {
@@ -21,11 +22,12 @@
 			outline: none;
 		}
 	</style>
+	<title>ECU Program Simulation</title>
 </head>
 
 <body>
-	<div style="width:100%; display:flex; flex-direction:row;">
-		<div style="width:400px;background-color:#ecf0f1;padding:15px;">
+	<div style="width:100%;height:100%; display:flex; flex-direction:row;">
+		<div style="width:400px;background-color:#ecf0f1;padding:15px; overflow-y:auto;">
 			<form>
 				<div class="form-group">
 					<a href="#" class="btn btn-default btn-lg" id="btn_import_dat_file" onclick="document.getElementById('importMDFFile').click()">DAT</a>
@@ -92,13 +94,13 @@
 				</div>
 			</form>
 		</div>
-		<div style="flex:1;">
+		<div style="flex:1;height:100%;overflow-y:auto;">
 			<p id='step-indicator'></p>
 			<div class="progress">
 				<div id="progress-indicator" class="progress-bar progress-bar-info" style="width: 0%"></div>
 			</div>
 			<div id="chart-collection-box">
-				<div id="chart-dp-dv" style="width:100%;height:400px;"></div>
+				<div id="chart-dp-dv" style="width:100%;height:800px;"></div>
 				<div id="chart-main" style="width:100%;height:800px;"></div>
 			</div>
 		</div>
@@ -129,28 +131,18 @@
 	}
 
 	function f2() {
-		/*
-		myECU.updateChart([
-			'PFltSig_facPCrssCorrln',
-			'PFltSig_facPSelfCorrln',
-			'PFltSig_ratPCorrln'], 'chart-01');
-		
-			'PFltSig_pPfilDifFild',
-			'PFltSig_vfEgPfilCorrdFild', 
-			'PFltSig_stStMac', 
-			'PFltSig_stRelsCondMon', 
-			'PFltSig_tiEfcDurn',
-		*/
 		const time = Array.from(myECU.memory.time);
 		const simu_CCF = {
 			name: '[S] CCF',
 			x: time,
 			y: myECU.memory.archives.PFltSig_ratPCorrln,
+			yaxis: 'y3'
 		}
 		const meas_CCF = {
 			name: '[M] CCF',
 			x: time,
 			y: Array.from(myECU.memory.measurements.PFltSig_ratPCorrln),
+			yaxis: 'y3'
 		}
 		const simu_PFltSig_facPCrssCorrln = {
 			name: '[S] PFltSig_facPCrssCorrln',
@@ -165,38 +157,48 @@
 			yaxis: 'y2'
 		}
 		const meas_PFltSig_facPCrssCorrln = {
-			name: '[S] PFltSig_facPCrssCorrln',
+			name: '[M] PFltSig_facPCrssCorrln',
 			x: time,
 			y: Array.from(myECU.memory.measurements.PFltSig_facPCrssCorrln),
-			yaxis: 'y2'
 		}
-		const meas_PFltSig_facPCrssCorrln = {
-			name: '[S] PFltSig_facPSelfCorrln',
+		const meas_PFltSig_facPSelfCorrln = {
+			name: '[M] PFltSig_facPSelfCorrln',
 			x: time,
 			y: Array.from(myECU.memory.measurements.PFltSig_facPSelfCorrln),
-			yaxis: 'y2'
 		}
 		const layout00 = {
-			yaxis1: {domain: [0, 0.5]},
-			yaxis2: {domain: [0.6, 1]},
+			yaxis1: {domain: [0, 0.3]},
+			yaxis2: {domain: [0.3, 0.6]},
+			yaxis3: {domain: [0.6, 1]},
 			legend: {traceorder: 'reverse'},
 		}
 		const traces_main = [
+			simu_CCF,
+			meas_CCF,
 			simu_PFltSig_facPCrssCorrln,
 			simu_PFltSig_facPSelfCorrln,
 			meas_PFltSig_facPCrssCorrln,
-			meas_PFltSig_facPCrssCorrln,
-			simu_CCF,
-			meas_CCF]
+			meas_PFltSig_facPSelfCorrln,
+			]
 		Plotly.newPlot('chart-main', traces_main, layout00);
 
 		// dp-dv
 		const pts = 2000;
+		const dvr = Math.resample(Array.from(myECU.memory.measurements.PFltSig_vfDeltaEgPfilCorrdFild), pts);
+		const dpr = Math.resample(Array.from(myECU.memory.measurements.PFltSig_pDeltaPfilDifRef), pts);
 		const dv = Math.resample(Array.from(myECU.memory.archives.PFltSig_vfDeltaEgPfilCorrdFild), pts);
 		const dp = Math.resample(Array.from(myECU.memory.archives.PFltSig_pDeltaPfilDifRef), pts);
 		const trace_dp_dv = {
+			name: '[仿真] dp-dv',
 			x: dv,
 			y: dp,
+			type: 'scatter',
+			mode: 'markers',
+		}
+		const meas_dp_dv = {
+			name: '[测量] dp-dv',
+			x: dvr,
+			y: dpr,
 			type: 'scatter',
 			mode: 'markers',
 		}
@@ -205,7 +207,7 @@
 		const fitX = Math.arange(Math.getMin(dv), Math.getMax(dv), 0.1);
 		const fitY = fitX.map((d)=> corr[0]+corr[1]*d+corr[2]*d*d);
 		const trace_fit = {
-
+			name: '[仿真] 拟合曲线',
 			x: fitX,
 			y: fitY,
 			type: 'line',
@@ -214,8 +216,14 @@
 			title: corr[2] + ',' + corr[1] + ',' + corr[0]
 		}
 
-		Plotly.newPlot('chart-dp-dv', [trace_dp_dv, trace_fit], layout);
+		Plotly.newPlot('chart-dp-dv', [trace_dp_dv, trace_fit, meas_dp_dv], layout);
 		
+		
+		myECU.updateChart([
+			'PFltSig_pPfilDifFild',
+			'PFltSig_vfEgPfilCorrdFild',
+			'PFltSig_stStMac'], 'chart-01');
+	
 	}
 
 	function restart () {
