@@ -167,10 +167,10 @@ function PFltSig_PCdng_20ms () {
 
 	this.labels = {
 		PFLT_VAR_SY:  				{readonly: true, initValue: 385},
-		PFltSig_tiFilPDif_C: 		{initValue: 5},
+		PFltSig_tiFilPDif_C: 		{initValue: 5, bindInputId: 'input_PFltSig_tiFilPDif_C', inputType: 'number'},
 		PFltSig_tEgPfilRef_C: 		{initValue: 293},
 		PFltSig_ratRFlowEg_T: 		{initValue:{"x":[0.761,1.224,1.687,2.15,2.613,3.076,3.539,4.002,4.465,4.928,5.391],"value":[0.817,1.162,2.02,2.07,2.072,2.149,2.309,2.79,3.026,3.255,3.479]}},
-		PFltSig_tiFilVf_C: 			{initValue:5},
+		PFltSig_tiFilVf_C: 			{initValue:5, bindInputId: 'input_PFltSig_tiFilVf_C', inputType: 'number'},
 	}
 
 	this.variables = {

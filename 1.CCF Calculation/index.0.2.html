@@ -38,59 +38,41 @@
 					<input type="email" class="form-control" id="input_filename" readonly="readonly" placeholder="*.dat">
 				</div>
 				<div class="form-group">
-					<label for="input_PFltSig_rFlowPfilRef_C">PFltSig_rFlowPfilRef_C</label>
-					<input type="number" class="form-control" id="input_PFltSig_rFlowPfilRef_C" value="0.0185">
-				</div>
-				<div class="form-group">
-					<label for="input_PFltSig_facPDeltaPfilRefCorr_C">PFltSig_facPDeltaPfilRefCorr_C</label>
+					<label for="input_PFltSig_facPDeltaPfilRefCorr_C">PFltSig_facPDeltaPfilRefCorr_C(B)</label>
 					<input type="number" class="form-control" id="input_PFltSig_facPDeltaPfilRefCorr_C" value="0.000018">
 				</div>
 				<div class="form-group">
-					<label for="input_PFLT_VAR_SY">PFLT_VAR_SY</label>
-					<input type="number" class="form-control" id="input_PFLT_VAR_SY" value="385">
+					<label for="input_PFltSig_rFlowPfilRef_C">PFltSig_rFlowPfilRef_C(A0)</label>
+					<input type="number" class="form-control" id="input_PFltSig_rFlowPfilRef_C" value="0.0185">
+				</div>
+				<div class="form-group">
+					<label for="input_PFltSig_tiFilVf_C">PFltSig_tiFilVf_C</label>
+					<input type="number" class="form-control" id="input_PFltSig_tiFilVf_C" value="5">
 				</div>
 				<div class="form-group">
 					<label for="input_PFltSig_tiFilPDif_C">PFltSig_tiFilPDif_C</label>
-					<input type="number" class="form-control" id="input_PFltSig_tiFilPDif_C" value="293">
-				</div>
-				<div class="form-group">
-					<label for="input_PFltSig_tiFilVf_C">PFltSig_tiFilVf_C</label>
-					<input type="number" class="form-control" id="input_PFltSig_tiFilVf_C" value="5">
-				</div>
+					<input type="number" class="form-control" id="input_PFltSig_tiFilPDif_C"  value="5">
+				</div>				
 				<div class="form-group">
 					<label for="input_PFltSig_ratRFlowEg_T">PFltSig_ratRFlowEg_T</label>
-					<input type="button" class="form-control" id="input_PFltSig_ratRFlowEg_T" value="Check Curve">
+					<input type="button" class="form-control" id="input_PFltSig_ratRFlowEg_T" readonly="readonly" value="Check Curve">
 				</div>
-				<div class="form-group">
-					<label for="input_PFltSig_tiFilVf_C">PFltSig_tiFilVf_C</label>
-					<input type="number" class="form-control" id="input_PFltSig_tiFilVf_C" value="5">
-				</div>
-
-				<div class="form-group">
-					<label for="input_MDG1MSGCNCPT_SC">MDG1MSGCNCPT_SC</label>
-					<input class="form-control" id="input_MDG1MSGCNCPT_SC" value="0">
-				</div>
-
 				<div class="form-group">
 					<label for="input_PFltSig_tiNormMin_C">PFltSig_tiNormMin_C</label>
 					<input class="form-control" id="input_PFltSig_tiNormMin_C" value="20">
 				</div>
-
 				<div class="form-group">
 					<label for="input_PFltSig_dvfEgPfilFildMin_C">PFltSig_dvfEgPfilFildMin_C</label>
 					<input class="form-control" id="input_PFltSig_dvfEgPfilFildMin_C" value="35">
 				</div>
-
 				<div class="form-group">
 					<label for="input_PFltSig_dvfEgPfilFildMax_C">PFltSig_dvfEgPfilFildMax_C</label>
 					<input class="form-control" id="input_PFltSig_dvfEgPfilFildMax_C" value="300">
 				</div>
-
 				<div class="form-group">
 					<label for="input_PFltSig_tiEfcDurnMin_C">PFltSig_tiEfcDurnMin_C</label>
 					<input class="form-control" id="input_PFltSig_tiEfcDurnMin_C" value="20">
 				</div>
-
 				<div class="form-group">
 					<label for="input_PFltSig_stRstCrssCorrln_C">PFltSig_stRstCrssCorrln_C</label>
 					<input class="form-control" id="input_PFltSig_stRstCrssCorrln_C" value="113">
@@ -100,20 +82,13 @@
 					<label for="input_PFltSig_stHaltCrssCorrln_C">PFltSig_stHaltCrssCorrln_C</label>
 					<input class="form-control" id="input_PFltSig_stHaltCrssCorrln_C" value="13">
 				</div>
-
 				<div class="form-group">
-					<label for="exampleFormControlSelect2">Example multiple select</label>
-					<select multiple class="form-control" id="exampleFormControlSelect2">
-					<option>1</option>
-					<option>2</option>
-					<option>3</option>
-					<option>4</option>
-					<option>5</option>
-					</select>
+					<label for="input_PFLT_VAR_SY">PFLT_VAR_SY</label>
+					<input type="number" class="form-control" id="input_PFLT_VAR_SY" readonly="readonly" value="385">
 				</div>
 				<div class="form-group">
-					<label for="exampleFormControlTextarea1">Example textarea</label>
-					<textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+					<label for="input_MDG1MSGCNCPT_SC">MDG1MSGCNCPT_SC</label>
+					<input class="form-control" id="input_MDG1MSGCNCPT_SC" readonly="readonly" value="0">
 				</div>
 			</form>
 		</div>
@@ -191,6 +166,10 @@
 
 		Plotly.newPlot('chart-dp-dv', [trace_dp_dv, trace_fit], layout);
 		
+	}
+
+	function restart () {
+		window.location.reload();
 	}
 	
 	

@@ -110,9 +110,9 @@ function PFltSig_Coorr_100ms () {
 	this.import = {}
 
 	this.labels = {
-		PFltSig_tiEfcDurnMin_C: 	{initValue: 20},
-		PFltSig_stRstCrssCorrln_C: 	{initValue: 113},
-		PFltSig_stHaltCrssCorrln_C: {initValue: 13},
+		PFltSig_tiEfcDurnMin_C: 	{initValue: 20, bindInputId: 'input_PFltSig_tiEfcDurnMin_C', inputType: 'number'},
+		PFltSig_stRstCrssCorrln_C: 	{initValue: 113, bindInputId: 'input_PFltSig_stRstCrssCorrln_C', inputType: 'number'},
+		PFltSig_stHaltCrssCorrln_C: {initValue: 13, bindInputId: 'input_PFltSig_stHaltCrssCorrln_C', inputType: 'number'},
 	}
 
 	this.variables = {

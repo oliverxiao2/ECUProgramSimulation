@@ -69,10 +69,10 @@ function PFltSig_RelsPCorrln_100ms () {
 	}
 
 	this.labels = {
-		MDG1MSGCNCPT_SC: 			{initValue: 0},
-		PFltSig_tiNormMin_C: 		{initValue: 20},
-		PFltSig_dvfEgPfilFildMin_C: {initValue: 35},
-		PFltSig_dvfEgPfilFildMax_C: {initValue: 300},
+		MDG1MSGCNCPT_SC: 			{initValue: 0, bindInputId: 'input_MDG1MSGCNCPT_SC', inputType: 'number'},
+		PFltSig_tiNormMin_C: 		{initValue: 20, bindInputId: 'input_PFltSig_tiNormMin_C', inputType: 'number'},
+		PFltSig_dvfEgPfilFildMin_C: {initValue: 35, bindInputId: 'input_PFltSig_dvfEgPfilFildMin_C', inputType: 'number'},
+		PFltSig_dvfEgPfilFildMax_C: {initValue: 300, bindInputId: 'input_PFltSig_dvfEgPfilFildMax_C', inputType: 'number'},
 	}
 
 	this.variables = {
