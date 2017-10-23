@@ -69,6 +69,7 @@ Math.timer_E_I = (old, E, I, dT) => {
 
 Math.resample = (array, pts) => {
 	const max = array.length;
+	if (pts >= max) return array;
 	const k = (max - 1)/(pts - 1);
 	const output = [];
 	for (let i = 0; i < pts; i++) {

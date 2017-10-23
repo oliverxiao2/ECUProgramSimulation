@@ -37,7 +37,7 @@
 				</div>				
 				<div class="form-group">
 					<label for="input_filename">Measurement</label>
-					<input type="email" class="form-control" id="input_filename" readonly="readonly" placeholder="*.dat">
+					<input type="text" class="form-control" id="input_filename" readonly="readonly" placeholder="*.dat">
 				</div>
 				<div class="form-group">
 					<label for="input_PFltSig_facPDeltaPfilRefCorr_C">PFltSig_facPDeltaPfilRefCorr_C(B)</label>
@@ -61,28 +61,28 @@
 				</div>
 				<div class="form-group">
 					<label for="input_PFltSig_tiNormMin_C">PFltSig_tiNormMin_C</label>
-					<input class="form-control" id="input_PFltSig_tiNormMin_C" value="20">
+					<input type="number" class="form-control" id="input_PFltSig_tiNormMin_C" value="20">
 				</div>
 				<div class="form-group">
 					<label for="input_PFltSig_dvfEgPfilFildMin_C">PFltSig_dvfEgPfilFildMin_C</label>
-					<input class="form-control" id="input_PFltSig_dvfEgPfilFildMin_C" value="35">
+					<input type="number" class="form-control" id="input_PFltSig_dvfEgPfilFildMin_C" value="35">
 				</div>
 				<div class="form-group">
 					<label for="input_PFltSig_dvfEgPfilFildMax_C">PFltSig_dvfEgPfilFildMax_C</label>
-					<input class="form-control" id="input_PFltSig_dvfEgPfilFildMax_C" value="300">
+					<input type="number" class="form-control" id="input_PFltSig_dvfEgPfilFildMax_C" value="300">
 				</div>
 				<div class="form-group">
 					<label for="input_PFltSig_tiEfcDurnMin_C">PFltSig_tiEfcDurnMin_C</label>
-					<input class="form-control" id="input_PFltSig_tiEfcDurnMin_C" value="20">
+					<input type="number" class="form-control" id="input_PFltSig_tiEfcDurnMin_C" value="20">
 				</div>
 				<div class="form-group">
 					<label for="input_PFltSig_stRstCrssCorrln_C">PFltSig_stRstCrssCorrln_C</label>
-					<input class="form-control" id="input_PFltSig_stRstCrssCorrln_C" value="113">
+					<input type="number" class="form-control" id="input_PFltSig_stRstCrssCorrln_C" value="113">
 				</div>
 
 				<div class="form-group">
 					<label for="input_PFltSig_stHaltCrssCorrln_C">PFltSig_stHaltCrssCorrln_C</label>
-					<input class="form-control" id="input_PFltSig_stHaltCrssCorrln_C" value="13">
+					<input type="number" class="form-control" id="input_PFltSig_stHaltCrssCorrln_C" value="13">
 				</div>
 				<div class="form-group">
 					<label for="input_PFLT_VAR_SY">PFLT_VAR_SY</label>
@@ -90,7 +90,7 @@
 				</div>
 				<div class="form-group">
 					<label for="input_MDG1MSGCNCPT_SC">MDG1MSGCNCPT_SC</label>
-					<input class="form-control" id="input_MDG1MSGCNCPT_SC" readonly="readonly" value="0">
+					<input type="number" class="form-control" id="input_MDG1MSGCNCPT_SC" readonly="readonly" value="0">
 				</div>
 			</form>
 		</div>
@@ -144,6 +144,19 @@
 			y: Array.from(myECU.memory.measurements.PFltSig_ratPCorrln),
 			yaxis: 'y3'
 		}
+		const simu_PFltSig_pDeltaPfilDifRef = {
+			name: '[S] PFltSig_pDeltaPfilDifRef',
+			x: time,
+			y: myECU.memory.archives.PFltSig_pDeltaPfilDifRef,
+			yaxis: 'y4'
+		}
+		const simu_PFltSig_pDeltaPfilDifFild = {
+			name: '[S] PFltSig_pDeltaPfilDifFild',
+			x: time,
+			y: myECU.memory.archives.PFltSig_pDeltaPfilDifFild,
+			yaxis: 'y4'
+		}
+
 		const simu_PFltSig_facPCrssCorrln = {
 			name: '[S] PFltSig_facPCrssCorrln',
 			x: time,
@@ -167,14 +180,17 @@
 			y: Array.from(myECU.memory.measurements.PFltSig_facPSelfCorrln),
 		}
 		const layout00 = {
-			yaxis1: {domain: [0, 0.3]},
-			yaxis2: {domain: [0.3, 0.6]},
-			yaxis3: {domain: [0.6, 1]},
+			yaxis1: {domain: [0, 0.2]},
+			yaxis2: {domain: [0.2, 0.4]},
+			yaxis4: {domain: [0.4, 0.7]},
+			yaxis3: {domain: [0.7, 1]},
 			legend: {traceorder: 'reverse'},
 		}
 		const traces_main = [
 			simu_CCF,
 			meas_CCF,
+			simu_PFltSig_pDeltaPfilDifRef,
+			simu_PFltSig_pDeltaPfilDifFild,
 			simu_PFltSig_facPCrssCorrln,
 			simu_PFltSig_facPSelfCorrln,
 			meas_PFltSig_facPCrssCorrln,
@@ -183,11 +199,11 @@
 		Plotly.newPlot('chart-main', traces_main, layout00);
 
 		// dp-dv
-		const pts = 2000;
+		const pts = 20000;
 		const dvr = Math.resample(Array.from(myECU.memory.measurements.PFltSig_vfDeltaEgPfilCorrdFild), pts);
 		const dpr = Math.resample(Array.from(myECU.memory.measurements.PFltSig_pDeltaPfilDifRef), pts);
 		const dv = Math.resample(Array.from(myECU.memory.archives.PFltSig_vfDeltaEgPfilCorrdFild), pts);
-		const dp = Math.resample(Array.from(myECU.memory.archives.PFltSig_pDeltaPfilDifRef), pts);
+		const dp = Math.resample(Array.from(myECU.memory.archives.PFltSig_pDeltaPfilDifFild), pts);
 		const trace_dp_dv = {
 			name: '[仿真] dp-dv',
 			x: dv,
@@ -222,7 +238,8 @@
 		myECU.updateChart([
 			'PFltSig_pPfilDifFild',
 			'PFltSig_vfEgPfilCorrdFild',
-			'PFltSig_stStMac'], 'chart-01');
+			'PFltSig_stStMac',
+			'PFltSig_tiEfcDurn'], 'chart-01');
 	
 	}
 
