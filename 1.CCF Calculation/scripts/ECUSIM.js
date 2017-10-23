@@ -3,7 +3,6 @@ function ECUSIM ({
 
 	}) {
 	var self = this;
-	let echarts = require('echarts');
 	this.memory = new ECUMEMORY ();
 
 	this.modules = {
