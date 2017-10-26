@@ -219,7 +219,6 @@
 			mode: 'markers',
 		}
 		const corr = Math.regression(dv, dp, 2);
-		const fitXDomain = [, ];
 		const fitX = Math.arange(Math.getMin(dv), Math.getMax(dv), 0.1);
 		const fitY = fitX.map((d)=> corr[0]*d+corr[1]*d*d);
 		const trace_fit = {
@@ -228,11 +227,22 @@
 			y: fitY,
 			type: 'line',
 		}
+
+		const corr2 = Math.regression(dvr, dpr, 2);
+		const fitX2 = Math.arrange(Math.getMin(dvr), Math.getMax(dvr), 0.1);
+		const fitY2 = fitX2.map((d)=> corr2[0]*d+corr2[1]*d*d);
+		const trace_fit2 = {
+			name: '[测量]拟合曲线',
+			x: fitX2,
+			y: fitY2,
+			type: 'line',
+		}
+
 		const layout = {
 			title: '一次项系数'+corr[0]+', 二次项系数' + corr[1],
 		}
 
-		Plotly.newPlot('chart-dp-dv', [trace_dp_dv, trace_fit, meas_dp_dv], layout);
+		Plotly.newPlot('chart-dp-dv', [trace_dp_dv, trace_fit, trace_fit2, meas_dp_dv], layout);
 		
 		
 		myECU.updateChart([
