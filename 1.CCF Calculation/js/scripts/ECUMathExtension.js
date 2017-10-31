@@ -174,8 +174,8 @@ Math.getContourData = (array) => {
 	y = y.sort();
 
 	for (const item of strArray) {
-		const i = item.A0.indexOf(x);
-		const j = item.B.indexOf(y);
+		const i = x.indexOf(item.A0);
+		const j = y.indexOf(item.B);
 		if (z[j] === undefined) z[j] = [];
 		z[j][i] = item.error;
 	}
