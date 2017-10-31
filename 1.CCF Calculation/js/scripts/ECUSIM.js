@@ -42,51 +42,185 @@ function ECUSIM ({
 
 	this.stepIndicator = document.getElementById('step-indicator');
 	this.progressIndicator = document.getElementById('progress-indicator');
+	this.logBox = document.getElementById('log')
 
 	this.runModule = function ({
 		ECUModule,
 		mdf = self.memory.MDF,
-		startup = 0, // unit: points
+		startup = 3500, // unit: points
+		mode = 1,
 		}) {
 		if(init() === 'mdf not ready') {
 			alert('MDF未解析完')
 			return;
 		}
 		ECUModule.initialized = true;
-
+		let loopTimes = 0;
+		const maxLoopTimes = 10;
 		const timeArray = self.memory.time;
 		const maxStep = timeArray.length - 1;
 		const sectionLength = 2000;
 		const sectionHandleTime = 200; //ms
 		const sectionCount = Math.ceil((maxStep+1)/sectionLength);
 		let step = 0;
-		
-		for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++) {
-			setTimeout(() => {
-				for (let i = 0; i < sectionLength; i++) {
-					self.step = step = i + sectionIndex * sectionLength;
-					if (step > maxStep) break;
-					else {
+
+		self.memory.errorResultList = [];
+		let errorStorage = [];
+		const error_startupSteps = 3500;
+		const error_target = 1.0;
+		let error, mean;
+		let A0_step = document.getElementById('A0_scan_step').valueAsNumber,
+			B_step = document.getElementById('B_scan_step').valueAsNumber,
+			A0_k = document.getElementById('A0_k').valueAsNumber,
+			B_k = document.getElementById('B_k').valueAsNumber;
+		let A0_init = document.getElementById('input_PFltSig_rFlowPfilRef_C').valueAsNumber,
+			B_init = document.getElementById('input_PFltSig_facPDeltaPfilRefCorr_C').valueAsNumber;
+		let error_x = [], error_y = [], error_z = [];
+		let scanTime = 500; //ms
+
+		if (mode == 1) {
+			for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++) {
+				setTimeout(() => {					
+					for (let i = 0; i < sectionLength; i++) {
+						self.step = step = i + sectionIndex * sectionLength;
+						if (step > maxStep) break;
+						else {
+							for (const func of ECUModule.runningQuery) {
+								if (step <= startup) {
+									readCurrentChannelDataInMemory(step, func.fObj, self.memory, true);
+								} else {
+									if (!func.disable && (step % parseInt(func.dT/ECUModule.basedT) === 0)) {
+										readCurrentChannelDataInMemory(step, func.fObj, self.memory, false);
+										func.fObj.logic(self.memory.workplace);
+									}
+								}												
+							}
+						}
+						
+						archiveChannels(step, self.memory);
+
+						if (self.stepIndicator) self.stepIndicator.innerText = parseInt((step/maxStep)*100) + '%';
+						if (self.progressIndicator) self.progressIndicator.style.width = parseInt((sectionIndex+1)/sectionCount*100) + '%';
+						
+						// 评价CCF计算
+						if (step >= error_startupSteps) error_PFltSig_ratPCorrln (errorStorage, self.memory.workplace);
+					}					
+				}, loopTimes*(1000 + sectionHandleTime*(sectionIndex+1)))
+			}
+			setTimeout(f2, 2000+ sectionHandleTime*sectionCount)
+		} else if (mode ==2) {
+			let logTable = document.getElementById('table');
+			let timer = 0;
+			var func1 = function(callback, A0, B){
+				setTimeout(()=>{
+					self.memory.workplace.PFltSig_rFlowPfilRef_C = A0;
+					self.memory.workplace.PFltSig_facPDeltaPfilRefCorr_C = B;
+				
+					for (step = 0; step < maxStep; step++) {
 						for (const func of ECUModule.runningQuery) {
-							if (step <= startup) {
+							if (step <= error_startupSteps) {
 								readCurrentChannelDataInMemory(step, func.fObj, self.memory, true);
 							} else {
 								if (!func.disable && (step % parseInt(func.dT/ECUModule.basedT) === 0)) {
 									readCurrentChannelDataInMemory(step, func.fObj, self.memory, false);
 									func.fObj.logic(self.memory.workplace);
+									error_PFltSig_ratPCorrln(errorStorage, self.memory.workplace);
 								}
 							}												
 						}
 					}
+
+					timer++;
+					mean = Math.mean(errorStorage);
+					error = Math.sqrt(mean);
+					error_z.push(error);
+					self.memory.errorResultList.push({
+						A0: self.memory.workplace.PFltSig_rFlowPfilRef_C,
+						B: self.memory.workplace.PFltSig_facPDeltaPfilRefCorr_C,
+						error: error,
+						mean: mean,
+						errorStorage: errorStorage,
+					})
+					self.logBox.innerHTML = parseFloat(timer / ((2*A0_k+1) * (2*B_k+1)) * 100).toFixed(2) + '%, 剩余时间:' + Math.getTime(((2*A0_k+1) * (2*B_k+1) - timer)*scanTime/1000);
 					
-					archiveChannels(step, self.memory);
+					errorStorage = [];
+					self.memory.workplace = {};
+					for (const name in self.memory.archives) {
+						self.memory.archives[name] = [];
+					}
+					
+					init();
+					typeof(callback) !== 'function' || callback();
+				}, scanTime);
+						
+			};
+	
+			var promisify = function(func, A0, B){
+				return function(){
+				  return new Promise(function(resolve){
+					func(resolve, A0, B);
+				  });
 				}
-				if (self.stepIndicator) self.stepIndicator.innerText = (step + 1);
-				if (self.progressIndicator) self.progressIndicator.style.width = parseInt((sectionIndex+1)/sectionCount*100) + '%';
-				
-			}, 1000 + sectionHandleTime*(sectionIndex+1))
+			}
+			
+			const func_arr = [];
+			
+			for (let i = -A0_k; i <= A0_k; i++) {
+				error_x.push(A0_init+i*A0_step);
+				for (let j = -B_k; j <= B_k; j++) {
+					if (i === -A0_k) error_y.push(B_init+j*B_step);
+					func_arr.push(promisify(func1, A0_init+i*A0_step, B_init+j*B_step));
+				}
+			}
+	
+			func_arr.reduce(function(cur, next) {
+				return cur.then(next);
+			}, Promise.resolve()).then(function() {
+				let xSize = error_x.length,
+					ySize = error_y.length,
+					z= [];
+				for (let i = 0; i < xSize; i++) {
+					z[i] = error_z.slice(i*ySize, (i+1)*ySize);
+				}
+
+				var contourData ={
+					x: error_x,
+					y: error_y,
+					z: numeric.transpose(z),
+					type: 'contour',
+					contours: {
+						coloring: 'heatmap'
+					}
+					//colorscale: [[0, 'rgb(166,206,227)'], [0.25, 'rgb(31,120,180)'], [0.45, 'rgb(178,223,138)'], [0.65, 'rgb(51,160,44)'], [0.85, 'rgb(251,154,153)'], [1, 'rgb(227,26,28)']]
+				  };
+				console.log(contourData);
+				  
+				  var layout = {
+					title: '扫描图' + '<br> A0初始值' + A0_init + ', 扫描范围'+(A0_init-A0_k*A0_step)+' - '+(A0_init+A0_k*A0_step) 
+						+'<br> B初始值' + B_init + ', 扫描范围'+(B_init-B_k*B_step)+' - '+(B_init+B_k*B_step),
+				  };
+				  
+				  Plotly.newPlot('contourDiv', [contourData], layout);
+
+				  const fs = require('fs');
+				  const outputErrorList = Object.assign(self.memory.errorResultList);
+				  for (const item of outputErrorList) {
+					  delete item.errorStorage;
+				  }
+				  const jsonObj = {
+					  A0_init: A0_init,
+					  B_init: B_init,
+					  A0_step: A0_step,
+					  B_step: B_step,
+					  A0_k: A0_k,
+					  B_k: B_k,
+					  data: outputErrorList,
+					  contourData: contourData,
+				  }
+				  const filepath = document.getElementById('importMDFFile').files[0].path;
+				  fs.writeFileSync(filepath + performance.now() +'.json',JSON.stringify(jsonObj, null, '\t'),{encoding:'utf-8'});
+			});
 		}
-		setTimeout(f2, sectionHandleTime*sectionCount + 2000);
 
 		function init () {
 			if (!ECUModule.initialized) {			
@@ -103,7 +237,9 @@ function ECUSIM ({
 			let n;
 			for (const func of ECUModule.runningQuery) {
 				func.fObj = func.fObj || new func.f();
-				n = importChannelDataToMemory(mdf, func, self.memory, ECUModule.basedT);
+				if (!self.memory.timeNormalized) {
+					n = importChannelDataToMemory(mdf, func, self.memory, ECUModule.basedT);
+				}				
 				for (const name in func.fObj.import) {
 					self.memory.workplace[name] = 0;
 				}
@@ -148,7 +284,7 @@ function ECUSIM ({
 					const timeCNBlock  = theCNBlock.parent.cnBlocks[0],
 						  rawTimeArray = timeCNBlock.rawDataArray;
 					if (rawTimeArray.length === 0) mdf.readDataBlockOf(timeCNBlock, mdf.arrayBuffer);
-					console.log(timeCNBlock);
+
 					tStart = tStart || rawTimeArray[0];
 					tEnd = tEnd || rawTimeArray[rawTimeArray.length -1];
 					n = n || parseInt(tEnd/simStepSize);
@@ -263,6 +399,16 @@ function ECUSIM ({
 				memoryNS.archives[name][i] = memoryNS.workplace[name];
 			}
 		}
+
+		function result () {
+			const div = document.getElementById('log');
+			error = Math.sqrt(Math.mean(errorStorage));
+			console.log(errorStorage, errorStorage.length)
+			errorStorage = [];
+			ECUModule.initialized = false;
+			init();
+			div.innerHTML += '<br><p>Error of CCF: '+ error +'</p>';
+		}
 	}
 
 	this.updateChart = function (names, boxId) {
@@ -339,13 +485,17 @@ function ECUSIM ({
 	(function init() {
 		inputFileHTMLElement.addEventListener('change', function () {
 			const file = this.files[0];
-			const reader = new FileReader();
-			reader.readAsArrayBuffer(file);
-			reader.onload = function (e) {
-				const arrayBuffer = e.target.result;
-				self.memory.MDF = new MDF(arrayBuffer, false);
-				alert('MDF ready');
-			}
+			const path = require('path');
+			const ext = path.extname(file.path);
+			if (ext.toUpperCase() == '.DAT') {
+				const reader = new FileReader();
+				reader.readAsArrayBuffer(file);
+				reader.onload = function (e) {
+					const arrayBuffer = e.target.result;
+					self.memory.MDF = new MDF(arrayBuffer, false);
+					alert('MDF ready');
+				}
+			}			
 		})
 	})();
 }
@@ -367,6 +517,8 @@ function ECUMEMORY () {
 	this.archives = {};
 
 	this.charts = {};
+
+	this.errorResultList = [];
 }
 
 /*

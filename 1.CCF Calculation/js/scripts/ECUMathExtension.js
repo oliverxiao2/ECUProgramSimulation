@@ -94,6 +94,22 @@ Math.regression = (x, y, k) => {
 	return numeric.dot(_t2, y);
 }
 
+Math.regressionXY = (X, Y) => {
+	const XT  = numeric.transpose(X);
+	const _t1 = numeric.inv(numeric.dot(XT, X));
+	const _t2 = numeric.dot(_t1, XT); 
+	return numeric.dot(_t2, Y);
+}
+
+Math.mean = (array) => {
+	if (array.length > 0) {
+		let sum = 0;
+		array.map((d) => {sum+=d});
+		return sum/array.length;
+	}
+	return NaN;
+}
+
 Math.arange = (start, end, step = 1) => {
 	const output = [];
 	for (let i = start; i <= end; i+=step) {
@@ -133,4 +149,44 @@ Math.polyEquation = (corr) => {
 		
 	}
 	return output;
+}
+Math.getTime = (sec) => {
+	const m = Math.floor(sec/60);
+	const s = sec - m * 60;
+	return (m ? (m + 'min ') : '') + (s + 'sec');
+}
+Math.getContourData = (array) => {
+	let x = [], y = [], z = [];
+	const strArray = Object.assign(array);
+
+	for (const item of strArray) {
+		item.A0 = (item.A0.toFixed(8));
+		item.B = (item.B.toFixed(8));
+		item.error = (item.error.toFixed(8));
+		item.mean = (item.mean.toFixed(8));
+
+		if (x.indexOf(item.A0) === -1) x.push(item.A0);
+		if (y.indexOf(item.B) === -1) y.push(item.B);
+
+	}
+
+	x = x.sort();
+	y = y.sort();
+
+	for (const item of strArray) {
+		const i = item.A0.indexOf(x);
+		const j = item.B.indexOf(y);
+		if (z[j] === undefined) z[j] = [];
+		z[j][i] = item.error;
+	}
+
+	x = x.map((d) => parseFloat(d));
+	y = y.map((d) => parseFloat(d));
+	z = z.map((d) => {
+		return d.map((v) => {
+			return parseFloat(v);
+		})
+	})
+
+	return {x, y, z};
 }

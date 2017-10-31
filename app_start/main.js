@@ -18,7 +18,7 @@ function createWindow () {
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, '../1.CCF Calculation/index.0.2.html'),
+    pathname: path.join(__dirname, '../1.CCF Calculation/js/index.0.2.html'),
     protocol: 'file:',
     slashes: true
   }))
