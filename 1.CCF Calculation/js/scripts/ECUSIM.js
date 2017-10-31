@@ -487,6 +487,7 @@ function ECUSIM ({
 			const file = this.files[0];
 			const path = require('path');
 			const ext = path.extname(file.path);
+			document.getElementById('input_filename').value = path.basename(file.path);
 			if (ext.toUpperCase() == '.DAT') {
 				const reader = new FileReader();
 				reader.readAsArrayBuffer(file);
