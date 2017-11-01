@@ -10,7 +10,7 @@ function ECUSIM ({
 			basedT: 0.1,
 			runningQuery: [{
 				i: 4,
-				f: PFltSig_PCorrln_100ms,
+				f: PFltSig_PCorrln_100ms_100_9_0,
 				dT: 0.1, //s
 				disable: false,
 			}],

@@ -144,9 +144,9 @@ function PFltSig_PCorrln_100ms_100_9_0 () {
 		// {PFltSig_pDeltaPfilDifRef} => variables
 		// {PFltSig_rFlowPfilRef_C, PFltSig_facPDeltaPfilRefCorr_C} => labels
 		$w.PFltSig_pDeltaPfilDifRef = $w.PFltSig_vfDeltaEgPfilCorrdFild * $w.PFltSig_rFlowPfilRef_C + $w.PFltSig_vfSqDeltaEgPfilCorrdFild * $w.PFltSig_facPDeltaPfilRefCorr_C;
-		// $w.PFltSig_pDeltaPfilDifRef = $w.PFltSig_vfEgPfilCorrdFild * $w.PFltSig_rFlowPfilRef_C + $w.PFltSig_vfSqEgPfilCorrdFild * $w.PFltSig_facPDeltaPfilRefCorr_C;
-
-
+		$w.PFltSig_pPfilDifRef = $w.PFltSig_vfEgPfilCorrdFild * $w.PFltSig_rFlowPfilRef_C + $w.PFltSig_vfSqEgPfilCorrdFild * $w.PFltSig_facPDeltaPfilRefCorr_C;
+		$w.PFltSig_pDeltaPfilDifRef = $w.PFltSig_pPfilDifRef - $w.PFltSig_pPfilDifRefOld;
+		$w.PFltSig_pPfilDifRefOld = $w.PFltSig_pPfilDifRef;
 		// step.10
 		// {PFltSig_facPCrssCorrln, PFltSig_facPSelfCorrln, PFltSig_ratPCorrlnBuf1, PFltSig_ratPCorrlnBuf2} => variables
 		if ($w.PFltSig_stStMac === 2) {
@@ -198,5 +198,8 @@ function PFltSig_PCorrln_100ms_100_9_0 () {
 		PFltSig_ratPCorrlnBuf1: {},
 		PFltSig_ratPCorrlnBuf2: {},
 		PFltSig_ratPCorrln: {},
+
+		PFltSig_pPfilDifRef: {},
+		PFltSig_pPfilDifRefOld: {},
 	}	
 }
