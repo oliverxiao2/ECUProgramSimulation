@@ -95,9 +95,11 @@ Math.regression = (x, y, k) => {
 }
 
 Math.regressionXY = (X, Y) => {
+	// X = [x1, x2..., xk], xi = [xi1, ... xin];
+	// 注意这里的X和Math.regress中的X是转置的关系
 	const XT  = numeric.transpose(X);
-	const _t1 = numeric.inv(numeric.dot(XT, X));
-	const _t2 = numeric.dot(_t1, XT); 
+	const _t1 = numeric.inv(numeric.dot(X, XT));
+	const _t2 = numeric.dot(_t1, X); 
 	return numeric.dot(_t2, Y);
 }
 
@@ -155,6 +157,7 @@ Math.getTime = (sec) => {
 	const s = sec - m * 60;
 	return (m ? (m + 'min ') : '') + (s + 'sec');
 }
+
 Math.getContourData = (array) => {
 	let x = [], y = [], z = [];
 	const strArray = Object.assign(array);

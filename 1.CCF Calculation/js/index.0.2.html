@@ -38,15 +38,22 @@
 				<div class="form-group">
 					<a href="#" class="btn btn-default" id="btn_import_dat_file" onclick="document.getElementById('importMDFFile').click()">DAT</a>
 					<input type="file" id="importMDFFile" style="display:none;">
+					<input type="file" id="jsonInputFile" style="display:none;">
 					<a href="#" class="btn btn-default" onclick="f1()">Run</a>
 					<a href="#" class="btn btn-default" onclick="scan()">Scan</a>
+					
+					<a href="#" class="btn btn-default" id="btn_import_dat_file" onclick="document.getElementById('jsonInputFile').click()">JSON</a>
 					<a href="#" class="btn btn-default" onclick="load()">Load</a>
 				</div>
 				<div class="form-group">
 					<textarea class="form-control"></textarea>
 				</div>			
 				<div class="form-group">
-					<label for="input_filename">File</label>
+					<label for="input_filename">JSON历史数据</label>
+					<input type="text" class="form-control" id="input_jsonFilename" readonly="readonly" placeholder="*.json">
+				</div>
+				<div class="form-group">
+					<label for="input_filename">测量文件</label>
 					<input type="text" class="form-control" id="input_filename" readonly="readonly" placeholder="*.dat">
 				</div>
 				<div class="form-group">
@@ -72,52 +79,55 @@
 				<div class="form-group">
 					<label for="input_PFltSig_facPDeltaPfilRefCorr_C">PFltSig_facPDeltaPfilRefCorr_C(B)</label>
 					<input type="number" class="form-control" id="input_PFltSig_facPDeltaPfilRefCorr_C" value="0.00005">
-				</div>				
-				<div class="form-group">
-					<label for="input_PFltSig_tiFilVf_C">PFltSig_tiFilVf_C</label>
-					<input type="number" class="form-control" id="input_PFltSig_tiFilVf_C" value="5">
-				</div>
-				<div class="form-group">
-					<label for="input_PFltSig_tiFilPDif_C">PFltSig_tiFilPDif_C</label>
-					<input type="number" class="form-control" id="input_PFltSig_tiFilPDif_C"  value="5">
-				</div>				
-				<div class="form-group">
-					<label for="input_PFltSig_ratRFlowEg_T">PFltSig_ratRFlowEg_T</label>
-					<input type="button" class="form-control" id="input_PFltSig_ratRFlowEg_T" readonly="readonly" value="Check Curve">
-				</div>
-				<div class="form-group">
-					<label for="input_PFltSig_tiNormMin_C">PFltSig_tiNormMin_C</label>
-					<input type="number" class="form-control" id="input_PFltSig_tiNormMin_C" value="20">
-				</div>
-				<div class="form-group">
-					<label for="input_PFltSig_dvfEgPfilFildMin_C">PFltSig_dvfEgPfilFildMin_C</label>
-					<input type="number" class="form-control" id="input_PFltSig_dvfEgPfilFildMin_C" value="35">
-				</div>
-				<div class="form-group">
-					<label for="input_PFltSig_dvfEgPfilFildMax_C">PFltSig_dvfEgPfilFildMax_C</label>
-					<input type="number" class="form-control" id="input_PFltSig_dvfEgPfilFildMax_C" value="300">
-				</div>
-				<div class="form-group">
-					<label for="input_PFltSig_tiEfcDurnMin_C">PFltSig_tiEfcDurnMin_C</label>
-					<input type="number" class="form-control" id="input_PFltSig_tiEfcDurnMin_C" value="20">
-				</div>
-				<div class="form-group">
-					<label for="input_PFltSig_stRstCrssCorrln_C">PFltSig_stRstCrssCorrln_C</label>
-					<input type="number" class="form-control" id="input_PFltSig_stRstCrssCorrln_C" value="113">
 				</div>
 
-				<div class="form-group">
-					<label for="input_PFltSig_stHaltCrssCorrln_C">PFltSig_stHaltCrssCorrln_C</label>
-					<input type="number" class="form-control" id="input_PFltSig_stHaltCrssCorrln_C" value="13">
+				<div style="display:none;">
+					<div class="form-group">
+						<label for="input_PFltSig_tiFilVf_C">PFltSig_tiFilVf_C</label>
+						<input type="number" class="form-control" id="input_PFltSig_tiFilVf_C" value="5">
+					</div>
+					<div class="form-group">
+						<label for="input_PFltSig_tiFilPDif_C">PFltSig_tiFilPDif_C</label>
+						<input type="number" class="form-control" id="input_PFltSig_tiFilPDif_C"  value="5">
+					</div>				
+					<div class="form-group">
+						<label for="input_PFltSig_ratRFlowEg_T">PFltSig_ratRFlowEg_T</label>
+						<input type="button" class="form-control" id="input_PFltSig_ratRFlowEg_T" readonly="readonly" value="Check Curve">
+					</div>
+					<div class="form-group">
+						<label for="input_PFltSig_tiNormMin_C">PFltSig_tiNormMin_C</label>
+						<input type="number" class="form-control" id="input_PFltSig_tiNormMin_C" value="20">
+					</div>
+					<div class="form-group">
+						<label for="input_PFltSig_dvfEgPfilFildMin_C">PFltSig_dvfEgPfilFildMin_C</label>
+						<input type="number" class="form-control" id="input_PFltSig_dvfEgPfilFildMin_C" value="35">
+					</div>
+					<div class="form-group">
+						<label for="input_PFltSig_dvfEgPfilFildMax_C">PFltSig_dvfEgPfilFildMax_C</label>
+						<input type="number" class="form-control" id="input_PFltSig_dvfEgPfilFildMax_C" value="300">
+					</div>
+					<div class="form-group">
+						<label for="input_PFltSig_tiEfcDurnMin_C">PFltSig_tiEfcDurnMin_C</label>
+						<input type="number" class="form-control" id="input_PFltSig_tiEfcDurnMin_C" value="20">
+					</div>
+					<div class="form-group">
+						<label for="input_PFltSig_stRstCrssCorrln_C">PFltSig_stRstCrssCorrln_C</label>
+						<input type="number" class="form-control" id="input_PFltSig_stRstCrssCorrln_C" value="113">
+					</div>
+					<div class="form-group">
+						<label for="input_PFltSig_stHaltCrssCorrln_C">PFltSig_stHaltCrssCorrln_C</label>
+						<input type="number" class="form-control" id="input_PFltSig_stHaltCrssCorrln_C" value="13">
+					</div>
+					<div class="form-group">
+						<label for="input_PFLT_VAR_SY">PFLT_VAR_SY</label>
+						<input type="number" class="form-control" id="input_PFLT_VAR_SY" readonly="readonly" value="385">
+					</div>
+					<div class="form-group">
+						<label for="input_MDG1MSGCNCPT_SC">MDG1MSGCNCPT_SC</label>
+						<input type="number" class="form-control" id="input_MDG1MSGCNCPT_SC" readonly="readonly" value="0">
+					</div>
 				</div>
-				<div class="form-group">
-					<label for="input_PFLT_VAR_SY">PFLT_VAR_SY</label>
-					<input type="number" class="form-control" id="input_PFLT_VAR_SY" readonly="readonly" value="385">
-				</div>
-				<div class="form-group">
-					<label for="input_MDG1MSGCNCPT_SC">MDG1MSGCNCPT_SC</label>
-					<input type="number" class="form-control" id="input_MDG1MSGCNCPT_SC" readonly="readonly" value="0">
-				</div>
+				
 			</form>
 		</div>
 		<div style="flex:1;height:100%;overflow-y:auto;">
@@ -128,16 +138,31 @@
 			<table id="table"></table>
 			<div id="log"></div>
 			<div id="chart-collection-box">
-				<div id="chart-dp-dv" style="width:100%;height:800px;"></div>
-				<div id="chart-main" style="width:100%;height:800px;"></div>
-				<div id="contourDiv" style="width:100%;height:800px;"></div>
+				<ul class="nav nav-tabs">
+					<li class="active"><a id="tab1" href="#dpdvscatter" data-toggle="tab">实测 dp-dv 散点图</a></li>
+					<li><a id="tab2" href="#scanheatmap" data-toggle="tab">扫描区间热力图</a></li>
+				</ul>
+				<div class="tab-content">
+					<div class="tab-pane fade in active" id="dpdvscatter">
+						<div id="chart-dp-dv" style="width:100%;height:400px;"></div>
+						<div id="chart-main" style="width:100%;height:400px;"></div>
+					</div>
+					<div class="tab-pane fade" id="scanheatmap">
+						<p id="contourIndicator"></p>
+						<div id="contourDiv" style="width:100%;height:800px;"></div>
+					</div>
+				</div>				
 			</div>
+
+			
 		</div>
 	</div>	
 </body>
 
 
-
+<script src="lib/jquery.min.js"></script>
+<script>if (typeof module === 'object') {window.jQuery = window.$ = module.exports;};</script>
+<script src="lib/bootstrap.v3.3.7.min.js"></script>
 <script src="scripts/ECUSIM.js"></script>
 <script src="lib/MDF.0.9.js"></script>
 <script src="lib/plotly.v1.31.0.min.js"></script>
@@ -173,6 +198,7 @@
 			y: Array.from(myECU.memory.measurements.PFltSig_ratPCorrln),
 			yaxis: 'y3'
 		}
+		/*
 		const simu_sm = {
 			name: '[S] SM',
 			x: time,
@@ -226,38 +252,33 @@
 			yaxis4: {domain: [0.4, 0.7]},
 			yaxis3: {domain: [0.7, 1]},
 			legend: {traceorder: 'reverse'},
-		}
+		}*/
 		const traces_main = [
 			simu_CCF,
 			meas_CCF,
-			simu_sm,
-			meas_sm,
-			simu_PFltSig_pDeltaPfilDifRef,
-			simu_PFltSig_pDeltaPfilDifFild,
-			simu_PFltSig_ratPCorrlnBuf2,
-			simu_PFltSig_ratPCorrlnBuf1,
-			meas_PFltSig_ratPCorrlnBuf2,
-			meas_PFltSig_ratPCorrlnBuf1,
+			//simu_sm,
+			//meas_sm,
+			//simu_PFltSig_pDeltaPfilDifRef,
+			//simu_PFltSig_pDeltaPfilDifFild,
+			//simu_PFltSig_ratPCorrlnBuf2,
+			//simu_PFltSig_ratPCorrlnBuf1,
+			//meas_PFltSig_ratPCorrlnBuf2,
+			//meas_PFltSig_ratPCorrlnBuf1,
 			]
-		Plotly.newPlot('chart-main', traces_main, layout00);
+		Plotly.newPlot('chart-main', traces_main);
 
 		// dp-dv
 		const pts = 2000;
 		const dvr = Math.resample(Array.from(myECU.memory.measurements.PFltSig_vfDeltaEgPfilCorrdFild), pts);
+		const dv2r= Math.resample(Array.from(myECU.memory.measurements.PFltSig_vfSqDeltaEgPfilCorrdFild), pts);
 		const dpr = Math.resample(Array.from(myECU.memory.measurements.PFltSig_pDeltaPfilDifFild), pts);
-		const dv = Math.resample(Array.from(myECU.memory.archives.PFltSig_vfDeltaEgPfilCorrdFild), pts);
-		const dp = Math.resample(Array.from(myECU.memory.archives.PFltSig_pDeltaPfilDifRef), pts);
+		//const dv = Math.resample(Array.from(myECU.memory.archives.PFltSig_vfDeltaEgPfilCorrdFild), pts);
+		//const dp = Math.resample(Array.from(myECU.memory.archives.PFltSig_pDeltaPfilDifRef), pts);
+		/*
 		const trace_dp_dv = {
 			name: '[仿真] dp-dv',
 			x: dv,
 			y: dp,
-			type: 'scatter',
-			mode: 'markers',
-		}
-		const meas_dp_dv = {
-			name: '[测量] dp-dv',
-			x: dvr,
-			y: dpr,
 			type: 'scatter',
 			mode: 'markers',
 		}
@@ -269,29 +290,31 @@
 			x: fitX,
 			y: fitY,
 			type: 'line',
-		}
+		}*/
 
-		const corr2 = Math.regression(dvr, dpr, 2);
-		const fitX2 = Math.arange(Math.getMin(dvr), Math.getMax(dvr), 0.1);
-		const fitY2 = fitX2.map((d)=> corr2[0]*d+corr2[1]*d*d);
-		const trace_fit2 = {
-			name: '[测量]拟合曲线',
-			x: fitX2,
-			y: fitY2,
-			type: 'line',
+		const meas_dp_dv = {
+			name: '[测量] dp-dv',
+			x: dvr,
+			y: dpr,
+			type: 'scatter',
+			mode: 'markers',
 		}
+		const corr2 = Math.regressionXY([dvr, dv2r], dpr); console.log(corr2);
 
 		const layout = {
-			title: '[测量]一次项系数'+corr2[0]+', 二次项系数' + corr2[1] + '<br>[仿真]一次项系数'+corr[0]+', 二次项系数' + corr[1] ,
+			title: '[测量]A0: '+corr2[0]+', B: ' + corr2[1],
 		}
 
-		Plotly.newPlot('chart-dp-dv', [trace_dp_dv, trace_fit, trace_fit2, meas_dp_dv], layout);
+		Plotly.newPlot('chart-dp-dv', [
+			//trace_dp_dv,
+			//trace_fit,
+			meas_dp_dv], layout);
 		
-		
+		/*
 		myECU.updateChart([
 			'PFltSig_vfDeltaEgPfilCorrdFild'
 			], 'chart-01');
-		/*
+		
 			'PFltSig_facPCrssCorrln',
 			'PFltSig_facPSelfCorrln',
 			'PFltSig_ratPCorrlnBuf1',
@@ -316,28 +339,35 @@
 	function load() {
 		const fs = require('fs');
 		const path = require('path');
-		const file = document.getElementById('importMDFFile').files[0];
-		//const ext = 
-		const txt = fs.readFileSync(file.path);
-		console.log(txt.length);
-		
-		var data = [ {
-			x: [1,5,6,8,9],
-			y: [3, 6, 9, 11],
-			z: [[10, 10.625, 12.5, 15.625, 20],
-				 [5.625, 6.25, 8.125, 11.25, 15.625],
-				 [2.5, 3.125, 5., 8.125, 12.5],
-				 [0.625, 1.25, 3.125, 6.25, 10.625],
-				 ],
-			type: 'contour',
-			//colorscale: [[0, 'rgb(166,206,227)'], [0.25, 'rgb(31,120,180)'], [0.45, 'rgb(178,223,138)'], [0.65, 'rgb(51,160,44)'], [0.85, 'rgb(251,154,153)'], [1, 'rgb(227,26,28)']]
-		  }
-		  ];
-		  
-		  var layout = {
-			title: 'Custom Contour Plot Colorscale' + '<br>' + 'good'
-		  };
-		  
-		  Plotly.newPlot('contourDiv', data, layout);
+		const filePath = document.getElementById('input_jsonFilename').value;
+		const filename = path.basename(filePath);
+		const ext = path.extname(filePath).toUpperCase();
+		if (ext === '.JSON') {
+			const txt = fs.readFileSync(filePath);
+			const obj = JSON.parse(txt);
+			console.log(obj);
+
+			if (obj.contourData) {
+				const layout = {
+					title: '扫描图' + '<br> A0初始值' + obj.A0_init + ', 扫描范围'+(obj.A0_init-obj.A0_k*obj.A0_step)+' - '+(obj.A0_init+obj.A0_k*obj.A0_step) 
+						+'<br> B初始值' + obj.B_init + ', 扫描范围'+(obj.B_init-obj.B_k*obj.B_step)+' - '+(obj.B_init+obj.B_k*obj.B_step),
+				}
+				document.getElementById('tab2').click();
+				document.getElementById('contourIndicator').innerHTML = '正在读取历史数据文件' + filename + '...';
+				setTimeout(() => {
+					Plotly.newPlot('contourDiv',[obj.contourData], layout);
+					document.getElementById('contourIndicator').innerHTML = '';
+				}, 1000);				
+			}
+			//Math.getContourData(txt);
+		}
 	}
+
+	(function(){
+		document.getElementById('jsonInputFile').addEventListener('change', function(){
+			document.getElementById('input_jsonFilename').value = this.files[0].path;
+		});
+
+	})();
+
 </script>

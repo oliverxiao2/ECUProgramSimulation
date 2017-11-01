@@ -101,13 +101,22 @@ function ECUSIM ({
 
 						if (self.stepIndicator) self.stepIndicator.innerText = parseInt((step/maxStep)*100) + '%';
 						if (self.progressIndicator) self.progressIndicator.style.width = parseInt((sectionIndex+1)/sectionCount*100) + '%';
+												
 						
 						// 评价CCF计算
 						if (step >= error_startupSteps) error_PFltSig_ratPCorrln (errorStorage, self.memory.workplace);
+
+						// 画图
+						if (step >= maxStep) {
+							document.getElementById('tab1').click();
+							setTimeout(() => {
+								f2();
+							}, 1000)
+						}
 					}					
-				}, loopTimes*(1000 + sectionHandleTime*(sectionIndex+1)))
+				}, 1000 + sectionHandleTime*(sectionIndex+1))
 			}
-			setTimeout(f2, 2000+ sectionHandleTime*sectionCount)
+
 		} else if (mode ==2) {
 			let logTable = document.getElementById('table');
 			let timer = 0;
@@ -199,8 +208,10 @@ function ECUSIM ({
 					title: '扫描图' + '<br> A0初始值' + A0_init + ', 扫描范围'+(A0_init-A0_k*A0_step)+' - '+(A0_init+A0_k*A0_step) 
 						+'<br> B初始值' + B_init + ', 扫描范围'+(B_init-B_k*B_step)+' - '+(B_init+B_k*B_step),
 				  };
-				  
-				  Plotly.newPlot('contourDiv', [contourData], layout);
+				  document.getElementById('tab2').click();
+				  setTimeout(()=>{
+					  Plotly.newPlot('contourDiv', [contourData], layout);
+				  }, 1000);
 
 				  const fs = require('fs');
 				  const outputErrorList = Object.assign(self.memory.errorResultList);
@@ -218,7 +229,7 @@ function ECUSIM ({
 					  contourData: contourData,
 				  }
 				  const filepath = document.getElementById('importMDFFile').files[0].path;
-				  fs.writeFileSync(filepath + performance.now() +'.json',JSON.stringify(jsonObj, null, '\t'),{encoding:'utf-8'});
+				  fs.writeFileSync(filepath + '_' +(new Date()).toString().replace(/\:/g, '-') +'.json',JSON.stringify(jsonObj, null, '\t'),{encoding:'utf-8'});
 			});
 		}
 
@@ -486,16 +497,18 @@ function ECUSIM ({
 		inputFileHTMLElement.addEventListener('change', function () {
 			const file = this.files[0];
 			const path = require('path');
-			const ext = path.extname(file.path);
-			document.getElementById('input_filename').value = path.basename(file.path);
+			const ext = path.extname(file.path);			
 			if (ext.toUpperCase() == '.DAT') {
+				document.getElementById('input_filename').value = path.basename(file.path);
 				const reader = new FileReader();
 				reader.readAsArrayBuffer(file);
 				reader.onload = function (e) {
 					const arrayBuffer = e.target.result;
 					self.memory.MDF = new MDF(arrayBuffer, false);
-					alert('MDF ready');
+					alert('测量文件就绪');
 				}
+			} else {
+				alert('注意数据文件后缀名为dat')
 			}			
 		})
 	})();
