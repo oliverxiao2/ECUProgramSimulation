@@ -66,7 +66,7 @@ function ECUSIM ({
 
 		self.memory.errorResultList = [];
 		let errorStorage = [];
-		const error_startupSteps = 3500;
+		const error_startupSteps = 1000;
 		const error_target = 1.0;
 		let error, mean;
 		let A0_step = document.getElementById('A0_scan_step').valueAsNumber,
@@ -127,7 +127,7 @@ function ECUSIM ({
 				
 					for (step = 0; step < maxStep; step++) {
 						for (const func of ECUModule.runningQuery) {
-							if (step <= error_startupSteps) {
+							if (step <= startup) {
 								readCurrentChannelDataInMemory(step, func.fObj, self.memory, true);
 							} else {
 								if (!func.disable && (step % parseInt(func.dT/ECUModule.basedT) === 0)) {
