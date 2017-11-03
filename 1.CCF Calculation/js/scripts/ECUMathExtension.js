@@ -193,3 +193,12 @@ Math.getContourData = (array) => {
 
 	return {x, y, z};
 }
+
+Math.exportAsCSV = (filepath, array) => {
+	let txt = '';
+	for (const item of array) {
+		txt += item + '\r\n';
+	}
+	const fs = require('fs');
+	fs.writeFileSync(filepath, txt, {encoding: 'utf-8'});
+}
