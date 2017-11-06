@@ -47,7 +47,7 @@ function ECUSIM ({
 	this.runModule = function ({
 		ECUModule,
 		mdf = self.memory.MDF,
-		startup = 3500, // unit: points
+		startup = 1, // unit: points
 		mode = 1,
 		}) {
 		if(init() === 'mdf not ready') {
@@ -66,7 +66,7 @@ function ECUSIM ({
 
 		self.memory.errorResultList = [];
 		let errorStorage = [];
-		const error_startupSteps = 1000;
+		const error_startupSteps = 1;
 		const error_target = 1.0;
 		let error, mean;
 		let A0_step = document.getElementById('A0_scan_step').valueAsNumber,
@@ -276,7 +276,7 @@ function ECUSIM ({
 			}			
 		}
 
-		function importChannelDataToMemory (mdf, func, memoryNS = self.memory, simStepSize = 0.02, needInterpolation) {
+		function importChannelDataToMemory (mdf, func, memoryNS = self.memory, simStepSize = 0.02, needInterpolation = false) {
 			let tStart, tEnd, n = self.memory.time ? self.memory.time.length : 0, fObj = func.fObj;
 			const nameCollection = Object.keys(fObj.import).concat(Object.keys(fObj.variables));
 			for (const name of nameCollection) {
@@ -301,14 +301,21 @@ function ECUSIM ({
 					n = n || parseInt(tEnd/simStepSize);
 
 					const rawDataArray  = (isDiscrete(theCNBlock)) ? theCNBlock.rawDataArray: theCNBlock.ccBlock.convertAll(theCNBlock.rawDataArray);
-					const normTimeArray = new Float64Array(n),
+					let normTimeArray = new Float64Array(n),
 						  normDataArray = new Float64Array(n);
 
-					for (let i = 0, t = tStart; i < n; i++) {
-						t += simStepSize;
-						if (!memoryNS.timeNormalized) normTimeArray[i] = t;
-						normDataArray[i] = (binarySearchChannel(t, rawTimeArray, rawDataArray, theCNBlock.isDiscrete));
+					if (needInterpolation) {
+						for (let i = 0, t = tStart; i < n; i++) {
+							t += simStepSize;
+							if (!memoryNS.timeNormalized) normTimeArray[i] = t;
+							normDataArray[i] = (binarySearchChannel(t, rawTimeArray, rawDataArray, theCNBlock.isDiscrete));
+						}
+					} else {
+						normTimeArray = rawTimeArray;
+						normDataArray = rawDataArray;
 					}
+
+					
 
 					if (!memoryNS.timeNormalized) memoryNS.time = normTimeArray;
 					memoryNS.measurements[name] = normDataArray;
