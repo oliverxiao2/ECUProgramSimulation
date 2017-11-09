@@ -189,13 +189,13 @@
 		const simu_CCF = {
 			name: '[S] CCF',
 			x: time,
-			y: myECU.memory.archives.PFltSig_ratPCorrln,
+			y: myECU.memory.archives.PFltSig_ratPCorrlnB1,
 			yaxis: 'y3'
 		}
 		const meas_CCF = {
 			name: '[M] CCF',
 			x: time,
-			y: Array.from(myECU.memory.measurements.PFltSig_ratPCorrln),
+			y: Array.from(myECU.memory.measurements.PFltSig_ratPCorrlnB1),
 			yaxis: 'y3'
 		}
 		/*
@@ -269,9 +269,9 @@
 
 		// dp-dv
 		const pts = 2000;
-		const dvr = Math.resample(Array.from(myECU.memory.measurements.PFltSig_vfDeltaEgPfilCorrdFild), pts);
-		const dv2r= Math.resample(Array.from(myECU.memory.measurements.PFltSig_vfSqDeltaEgPfilCorrdFild), pts);
-		const dpr = Math.resample(Array.from(myECU.memory.measurements.PFltSig_pDeltaPfilDifFild), pts);
+		const dvr = Math.resample(Array.from(myECU.memory.measurements.PFltSig_vfEgPfilCorrdFildB1), pts);
+		const dv2r= Math.resample(Array.from(myECU.memory.measurements.PFltSig_vfSqEgPfilCorrdFildB1), pts);
+		const dpr = Math.resample(Array.from(myECU.memory.measurements.PFltSig_pPfilDifFildB1), pts);
 		//const dv = Math.resample(Array.from(myECU.memory.archives.PFltSig_vfDeltaEgPfilCorrdFild), pts);
 		//const dp = Math.resample(Array.from(myECU.memory.archives.PFltSig_pDeltaPfilDifRef), pts);
 		/*
