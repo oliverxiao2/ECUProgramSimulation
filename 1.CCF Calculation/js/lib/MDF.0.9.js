@@ -1866,7 +1866,7 @@ MDF.prototype.searchIndexesByRegExp = function(regexp){
 
 MDF.prototype.searchChannelsByRegExp = function(regexp){
   var func = (function(regexp, cn){
-    return cn.shortSignalName.search(regexp) != -1;
+    return cn.longSignalName.search(regexp) != -1;
   }).bind(this, regexp);
   var cnArray = this.searchChannelsIf(func);
 
