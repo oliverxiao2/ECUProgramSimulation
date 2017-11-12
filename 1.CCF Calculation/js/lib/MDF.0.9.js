@@ -753,6 +753,7 @@ CNBlock.prototype.initiallize = function(arrayBuffer, blockOffset, littleEndian)
   if( this.blockSize > (offset - blockOffset) ){
     len = 4;
     this.pLongSignalName = MDF.ab2uint32(arrayBuffer, offset, littleEndian);
+    this.longSignalName = String.fromCharCode.apply(null, new Uint8Array(arrayBuffer, this.pLongSignalName, 64)).split('\0')[1];
     offset += len;
   }
 
